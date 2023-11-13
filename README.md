@@ -9,7 +9,7 @@ This is from 2022 hackathon.
 
 1. `git clone https://github.com/AI4EIC/AI4EICHackathon-2023.git`
 2. `cd AI4EICHackathon-2023/LeaderBoard`
-3. `conda create --name env_ai4eic_hack python=3.11.5`
+3. `conda create --name env_ai4eic_hack`
 4. `conda install pip`
 5. `pip install -r requirements.txt`
 
