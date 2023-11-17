@@ -13,6 +13,8 @@ from flask_leaderboard.evaluator import Evaluate, evaluate
 import openai
 import flask_leaderboard.aiapi
 import flask_leaderboard.config
+from flask_leaderboard.OpenAIAg.OpenAIChat import OpenAIChat
+
 
 @app.route("/")
 @app.route("/leaderboard")
@@ -64,6 +66,9 @@ def login():
         team = Team.query.filter_by(name=form.teamname.data).first()
         user = User.query.filter_by(username=form.username.data, teamname = form.teamname.data).first()
         if user and team and bcrypt.check_password_hash(team.password, form.password.data):
+            # if authenticated, create a OpenAIChat object
+            app.config["OPENAI_USERS"][user.username] = OpenAIChat(user.username, flask_leaderboard.config.DevelopmentConfig.OPENAI_KEY, "None")
+            print (user.username)
             login_user(user, remember=form.remember.data)
             next_page = request.args.get('next')
             return redirect(url_for('leaderboard'))
@@ -137,11 +142,16 @@ def submit():
 
 
 @app.route('/chat', methods = ['GET', 'POST'])
+@login_required # need to be logged in to chat
 def chat():
+    if not current_user.is_authenticated:
+        return redirect(url_for('login'))
     if request.method == 'POST':
-        print("post",file=sys.stdout)        
+        print("post",file=sys.stdout)   
+             
         prompt = request.form['prompt']
-        answer = flask_leaderboard.aiapi.generateChatResponse(prompt)
+        answer = app.config["OPENAI_USERS"][current_user.username].Chat(prompt)
+        #answer = flask_leaderboard.aiapi.generateChatResponse(prompt)
         res = {}
         res['prompt'] = prompt
         res['answer'] = answer
