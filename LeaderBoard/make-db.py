@@ -32,9 +32,14 @@ for player in range(0, 41, 4):
 
 for team, pword in zip(team_names, passwords):
     pword = make_password(pword)
+    
     db.session.add(Team(name = team, password = pword))
     db.session.commit()
     for user in users[team]:
-        db.session.add(User(username = user, teamname = team, password = pword))
+        db.session.add(User(username = user, 
+                            teamname = team, 
+                            password = pword, 
+                            OPENAI_API_KEY = "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")
+                       )
         db.session.commit()
 

@@ -27,6 +27,8 @@ class User(db.Model, UserMixin):
     username = db.Column(db.String(20), unique=False, nullable=False)
     teamname = db.Column(db.String(30), db.ForeignKey('team.name'), nullable = False)
     password = db.Column(db.String(60), unique = False, nullable = False)
+    OPENAI_API_KEY = db.Column(db.String(60), unique = False, nullable = False)
+    ChatHistory = db.relationship('ChatDB', backref = 'user', lazy = True)
     def __repr__(self):
         return f"User('{self.username}')"
 
@@ -42,3 +44,17 @@ class Question(db.Model):
 
     def __repr__(self):
         return f"Question('{self.teamname}', '{self.username}', {self.qnumber}, {self.qscore}, {self.submit_time})"
+
+class ChatDB(db.Model, UserMixin):
+    __tablename__ = 'chatdb'
+    id = db.Column(db.Integer, primary_key = True)
+    username = db.Column(db.String(60), db.ForeignKey('user.username'), nullable = False)
+    session_id = db.Column(db.Integer, nullable = False)
+    user_prompt = db.Column(db.Text(), nullable = False)
+    ai_response = db.Column(db.Text(), nullable = False)
+    system_response = db.Column(db.Text(), nullable = False)
+    feedback = db.Column(db.Boolean, nullable = False)
+    prompt_tokens = db.Column(db.Integer, nullable = False)
+    completion_tokens = db.Column(db.Integer, nullable = False)
+    def __repr__(self):
+        return f"ChatDB('{self.username}')"
