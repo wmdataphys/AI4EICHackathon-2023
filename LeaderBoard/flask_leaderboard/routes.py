@@ -1,7 +1,8 @@
-import os
+import os,sys
 import secrets
+import json
 from PIL import Image
-from flask import render_template, url_for, flash, redirect, request, abort
+from flask import render_template, url_for, flash, redirect, request, abort, jsonify
 from flask_leaderboard import app, db, bcrypt
 from flask_leaderboard.forms import LoginForm, SubmitForm
 from flask_leaderboard.models import Team, User, Question
@@ -9,6 +10,9 @@ from flask_login import login_user, current_user, logout_user, login_required
 from werkzeug.utils import secure_filename
 from datetime import datetime
 from flask_leaderboard.evaluator import Evaluate, evaluate
+import openai
+import flask_leaderboard.aiapi
+import flask_leaderboard.config
 
 @app.route("/")
 @app.route("/leaderboard")
@@ -130,6 +134,23 @@ def submit():
             #return redirect(url_for('leaderboard'))
     return render_template('submit.html', title='Submit for Evaluations', form=form,
                             tname = tname, uname = uname)
+
+
+@app.route('/chat', methods = ['GET', 'POST'])
+def chat():
+    if request.method == 'POST':
+        print("post",file=sys.stdout)        
+        prompt = request.form['prompt']
+        answer = flask_leaderboard.aiapi.generateChatResponse(prompt)
+        res = {}
+        res['prompt'] = prompt
+        res['answer'] = answer
+        #json_object = json.dumps(res)
+        #with open("sample.json","a") as outfile:
+            #outfile.write(json_object)
+        return jsonify(res), 200
+    return render_template('chat.html', title='Chat Bot', **locals())
+    
 """
 def submit():
     return render_template("will_open.html")
