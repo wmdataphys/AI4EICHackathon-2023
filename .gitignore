@@ -1,15 +1,7 @@
 *__pycache__
 */*__pycache__
 */*/*__pycache__
-*/*/*/*__pycache__
-*/*/*/*/*__pycache__
-*/*/*/*/*/*__pycache__
-*/*/*/*/*/*/*__pycache__
-*/*/*/*/*/*/*/*__pycache__
-*/*/*/*/*/*/*/*/*__pycache__
-*/*/*/*/*/*/*/*/*/*__pycache__
 
-# ignore notebooks for now
-
-*.ipynb_checkpoints
-*.ipynb
+*.DS_Store*
+*.pyc
+*.ipynb*
