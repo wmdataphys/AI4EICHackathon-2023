@@ -23,11 +23,13 @@
               <a class="new-navstyle" href="{{ url_for('logout') }}">Logout</a>
               <a class="new-navstyle" href="{{ url_for('allteams') }}">All Teams</a>
               <a class="new-navstyle" href="{{ url_for('current_teamstat') }}">Team Stats</a>
+              <a class="new-navstyle" href="{{ url_for('chat') }}">Chat</a>	      
               {% else %}
               <a class="new-navstyle" href="{{ url_for('leaderboard') }}">Home</a>
               <a class="new-navstyle" href="{{ url_for('submit') }}">Submit</a>
               <a class="new-navstyle" href="{{ url_for('login') }}">Login</a>
               <a class="new-navstyle" href="{{ url_for('allteams') }}">All Teams</a>
+              <a class="new-navstyle" href="{{ url_for('chat') }}">Chat</a>	      	      
               {% endif %}
         </div>
       </nav>

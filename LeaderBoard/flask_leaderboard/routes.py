@@ -1,7 +1,8 @@
-import os
+import os,sys
 import secrets
+import json
 from PIL import Image
-from flask import render_template, url_for, flash, redirect, request, abort
+from flask import render_template, url_for, flash, redirect, request, abort, jsonify
 from flask_leaderboard import app, db, bcrypt
 from flask_leaderboard.forms import LoginForm, SubmitForm
 from flask_leaderboard.models import Team, User, Question
@@ -9,6 +10,11 @@ from flask_login import login_user, current_user, logout_user, login_required
 from werkzeug.utils import secure_filename
 from datetime import datetime
 from flask_leaderboard.evaluator import Evaluate, evaluate
+import openai
+import flask_leaderboard.aiapi
+import flask_leaderboard.config
+from flask_leaderboard.OpenAIAg.OpenAIChat import OpenAIChat
+
 
 @app.route("/")
 @app.route("/leaderboard")
@@ -60,6 +66,9 @@ def login():
         team = Team.query.filter_by(name=form.teamname.data).first()
         user = User.query.filter_by(username=form.username.data, teamname = form.teamname.data).first()
         if user and team and bcrypt.check_password_hash(team.password, form.password.data):
+            # if authenticated, create a OpenAIChat object
+            app.config["OPENAI_USERS"][user.username] = OpenAIChat(user.username, flask_leaderboard.config.DevelopmentConfig.OPENAI_KEY, "None")
+            print (user.username)
             login_user(user, remember=form.remember.data)
             next_page = request.args.get('next')
             return redirect(url_for('leaderboard'))
@@ -130,6 +139,28 @@ def submit():
             #return redirect(url_for('leaderboard'))
     return render_template('submit.html', title='Submit for Evaluations', form=form,
                             tname = tname, uname = uname)
+
+
+@app.route('/chat', methods = ['GET', 'POST'])
+@login_required # need to be logged in to chat
+def chat():
+    if not current_user.is_authenticated:
+        return redirect(url_for('login'))
+    if request.method == 'POST':
+        print("post",file=sys.stdout)   
+             
+        prompt = request.form['prompt']
+        answer = app.config["OPENAI_USERS"][current_user.username].Chat(prompt)
+        #answer = flask_leaderboard.aiapi.generateChatResponse(prompt)
+        res = {}
+        res['prompt'] = prompt
+        res['answer'] = answer
+        #json_object = json.dumps(res)
+        #with open("sample.json","a") as outfile:
+            #outfile.write(json_object)
+        return jsonify(res), 200
+    return render_template('chat.html', title='Chat Bot', **locals())
+    
 """
 def submit():
     return render_template("will_open.html")
