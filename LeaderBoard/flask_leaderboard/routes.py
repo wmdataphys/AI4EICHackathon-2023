@@ -14,8 +14,9 @@ import openai
 import flask_leaderboard.aiapi
 import flask_leaderboard.config
 from flask_leaderboard.OpenAIAg.OpenAIChat import OpenAIChat
+from flask_leaderboard.utils import OPENAI_Utils
 
-
+util = OPENAI_Utils()
 @app.route("/")
 @app.route("/leaderboard")
 def leaderboard():
@@ -161,16 +162,16 @@ def start_session():
         context = form.context.data
         app.config["OPENAI_USERS"][user_name].resetAndStartSession(session_name = session_name, user_context = [context])
         session_id = app.config["OPENAI_USERS"][user_name].session_id
-        session = ChatSessions(sessioname = session_name, 
-                               username = user_name, 
-                               session_id = session_id, 
-                               const_sys_context = "", 
+        session = ChatSessions(sessioname = session_name,
+                               username = user_name,
+                               session_id = session_id,
+                               const_sys_context = "",
                                user_sys_context = context)
         db.session.add(session)
         db.session.commit()
         return redirect(url_for('chat'))
     return render_template('start_session.html', title = 'Start Session', form = form)
-    
+
 @app.route('/chat', methods = ['GET', 'POST'])
 @login_required # need to be logged in to chat
 def chat():
@@ -179,7 +180,7 @@ def chat():
     user_name = current_user.username
     if (app.config["OPENAI_USERS"][user_name].session_id == 0):
         return redirect(url_for('start_session'))
-    if request.method == 'POST':     
+    if request.method == 'POST':
         # get the OPENAIAgent object
         agent = app.config["OPENAI_USERS"][user_name]
         agent.user_input = request.form['prompt']
@@ -187,12 +188,12 @@ def chat():
         if (return_reason != "stop"):
             print ("something is wrong with ChatGPT check it ", return_reason)
         answer = agent.output
-        chatinfo = ChatInfo(username = user_name, 
-                            session_id = agent.session_id, 
-                            user_prompt = agent.user_input, 
-                            ai_response = agent.output, 
+        chatinfo = ChatInfo(username = user_name,
+                            session_id = agent.session_id,
+                            user_prompt = agent.user_input,
+                            ai_response = agent.output,
                             system_response = "",
-                            feedback = True, 
+                            feedback = True,
                             prompt_tokens = agent.prompt_tokens,
                             completion_tokens = agent.output_tokens
                             )
@@ -200,12 +201,15 @@ def chat():
         db.session.commit()
         if (agent.total_tokens > app.config["OPENAI_params"].MAX_TOKENS):
             pass # NEED TO CHANGE THIS
-        
+
         #answer = flask_leaderboard.aiapi.generateChatResponse(prompt)
         res = {}
         res['prompt'] = agent.user_input
-        res['answer'] = agent.output
+        code,text = util.split(agent.output)
+        res['code'] =  code
+        res['text'] = text
+        res['n_code'] = len(code)
+        res['n_text'] = len(text)
+        agent.write_file('your_code.py')
         return jsonify(res), 200
     return render_template('chat.html', title='Chat Bot', **locals())
-    
-

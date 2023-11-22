@@ -19,20 +19,21 @@ class OpenAIChat:
         self.prompt_tokens = 0
         self.output_tokens = 0
         self.OPENAI_params = OPENAI_Utils()
-        
+        self.python_file = None
+
         # private variables
         self._setDefaultSystemContext()
-    
+
     def setUserInput(self, user_input: str):
         self.user_input = user_input
-    
+
     def setUserDefaultContext(self, user_context: list = []):
         for context in user_context:
             self.msgs.append({"role" : "user", "content" : context})
-    
+
     def getMessages(self):
         return self.msgs
-    
+
     def resetAndStartSession(self, session_name: str, user_context: list = []):
         self.session_name = session_name
         self.msgs = []
@@ -44,15 +45,19 @@ class OpenAIChat:
         self.output_tokens = 0
         self.session_id += 1
         self.memory = None
-                
-    
+
+    def write_file(self,filename='your_code.py'):
+        if self.python_file is not None:
+            with open(filename, 'w') as file:
+                file.write(self.python_file)
+
     def Chat(self):
         self.msgs.append({"role" : "user", "content" : self.user_input})
         return_string = ""
         try:
-            
+
             output = self.OpenAIClient.chat.completions.create(model=self.OPENAI_params.GPT_MODEL,
-                                                    messages=self.msgs, 
+                                                    messages=self.msgs,
                                                     temperature=self.OPENAI_params.TEMPERATURE,
                                                     max_tokens=self.OPENAI_params.MAX_TOKENS,
                                                     )
@@ -66,13 +71,12 @@ class OpenAIChat:
         except Exception as e:
             return_string = e
         return return_string
-    
+
     def _setDefaultSystemContext(self, context_msgs= None):
         if (not context_msgs):
             for msg in self.OPENAI_params.getDefaultContexts():
                 self.msgs.append({"role" : "system", "content" : msg})
-                
+
         else:
             for msg in context_msgs:
                 self.msgs.append({"role" : "system", "content" : msg})
-    
