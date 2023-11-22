@@ -14,8 +14,6 @@ db.create_all()
 
 from flask_leaderboard.models import Team, User, Question
 
-db.session.commit()
-
 # creating teams - leave commented until morning of 10/14
 team_names = []
 for t in range(1, 11):
@@ -30,11 +28,17 @@ users = dict()
 for player in range(0, 41, 4):
     users[f"Team {player//4 + 1}"] = [f"Player {player + 1}", f"Player {player + 2}", f"Player {player + 3}", f"Player {player + 4}"]
 
+db.create_all()
 for team, pword in zip(team_names, passwords):
     pword = make_password(pword)
+    print (team)
     db.session.add(Team(name = team, password = pword))
     db.session.commit()
     for user in users[team]:
-        db.session.add(User(username = user, teamname = team, password = pword))
+        db.session.add(User(username = user, 
+                            teamname = team, 
+                            password = pword, 
+                            OPENAI_API_KEY = "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")
+                       )
         db.session.commit()
 

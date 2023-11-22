@@ -4,8 +4,8 @@ import json
 from PIL import Image
 from flask import render_template, url_for, flash, redirect, request, abort, jsonify
 from flask_leaderboard import app, db, bcrypt
-from flask_leaderboard.forms import LoginForm, SubmitForm
-from flask_leaderboard.models import Team, User, Question
+from flask_leaderboard.forms import LoginForm, SubmitForm, OpenAISessionForm
+from flask_leaderboard.models import Team, User, Question, ChatSessions, ChatInfo
 from flask_login import login_user, current_user, logout_user, login_required
 from werkzeug.utils import secure_filename
 from datetime import datetime
@@ -66,11 +66,13 @@ def login():
         team = Team.query.filter_by(name=form.teamname.data).first()
         user = User.query.filter_by(username=form.username.data, teamname = form.teamname.data).first()
         if user and team and bcrypt.check_password_hash(team.password, form.password.data):
-            # if authenticated, create a OpenAIChat object
+            # if authenticated, Check for the last session
             app.config["OPENAI_USERS"][user.username] = OpenAIChat(user.username, flask_leaderboard.config.DevelopmentConfig.OPENAI_KEY, "None")
-            print (user.username)
+            if (len(user.AllChatSessions) == 0):
+                app.config["OPENAI_USERS"][user.username].session_id = 0
+            else:
+                app.config["OPENAI_USERS"][user.username].session_id = user.AllChatSessions[-1].session_id
             login_user(user, remember=form.remember.data)
-            next_page = request.args.get('next')
             return redirect(url_for('leaderboard'))
         else:
             flash('Login Unsuccessful. Please check team, username and password', 'danger')
@@ -140,28 +142,70 @@ def submit():
     return render_template('submit.html', title='Submit for Evaluations', form=form,
                             tname = tname, uname = uname)
 
-
+"""
+def submit():
+    return render_template("will_open.html")
+"""
+@app.route("/start_session", methods = ['GET', 'POST'])
+@login_required
+def start_session():
+    if not current_user.is_authenticated:
+        return redirect(url_for('login'))
+    form = OpenAISessionForm()
+    if form.validate_on_submit():
+        user_name = current_user.username
+        team_name = current_user.teamname
+        session_name = form.name.data
+        if (session_name == "Chat Session"):
+            session_name += f' - {app.config["OPENAI_USERS"][user_name].session_id + 1}'
+        context = form.context.data
+        app.config["OPENAI_USERS"][user_name].resetAndStartSession(session_name = session_name, user_context = [context])
+        session_id = app.config["OPENAI_USERS"][user_name].session_id
+        session = ChatSessions(sessioname = session_name, 
+                               username = user_name, 
+                               session_id = session_id, 
+                               const_sys_context = "", 
+                               user_sys_context = context)
+        db.session.add(session)
+        db.session.commit()
+        return redirect(url_for('chat'))
+    return render_template('start_session.html', title = 'Start Session', form = form)
+    
 @app.route('/chat', methods = ['GET', 'POST'])
 @login_required # need to be logged in to chat
 def chat():
     if not current_user.is_authenticated:
         return redirect(url_for('login'))
-    if request.method == 'POST':
-        print("post",file=sys.stdout)   
-             
-        prompt = request.form['prompt']
-        answer = app.config["OPENAI_USERS"][current_user.username].Chat(prompt)
+    user_name = current_user.username
+    if (app.config["OPENAI_USERS"][user_name].session_id == 0):
+        return redirect(url_for('start_session'))
+    if request.method == 'POST':     
+        # get the OPENAIAgent object
+        agent = app.config["OPENAI_USERS"][user_name]
+        agent.user_input = request.form['prompt']
+        return_reason = agent.Chat()
+        if (return_reason != "stop"):
+            print ("something is wrong with ChatGPT check it ", return_reason)
+        answer = agent.output
+        chatinfo = ChatInfo(username = user_name, 
+                            session_id = agent.session_id, 
+                            user_prompt = agent.user_input, 
+                            ai_response = agent.output, 
+                            system_response = "",
+                            feedback = True, 
+                            prompt_tokens = agent.prompt_tokens,
+                            completion_tokens = agent.output_tokens
+                            )
+        db.session.add(chatinfo)
+        db.session.commit()
+        if (agent.total_tokens > app.config["OPENAI_params"].MAX_TOKENS):
+            pass # NEED TO CHANGE THIS
+        
         #answer = flask_leaderboard.aiapi.generateChatResponse(prompt)
         res = {}
-        res['prompt'] = prompt
-        res['answer'] = answer
-        #json_object = json.dumps(res)
-        #with open("sample.json","a") as outfile:
-            #outfile.write(json_object)
+        res['prompt'] = agent.user_input
+        res['answer'] = agent.output
         return jsonify(res), 200
     return render_template('chat.html', title='Chat Bot', **locals())
     
-"""
-def submit():
-    return render_template("will_open.html")
-"""
+

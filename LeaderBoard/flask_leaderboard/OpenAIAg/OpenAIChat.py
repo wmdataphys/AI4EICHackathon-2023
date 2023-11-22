@@ -1,63 +1,78 @@
 from openai import OpenAI
+from typing import Dict, List, Any, Text
+from flask_leaderboard.utils import OPENAI_Utils
 #from MessageDB import CustomMessageConverter
 #from langchain.schema import AIMessage, BaseMessage, HumanMessage, SystemMessage
 
 class OpenAIChat:
-    def __init__(self, user_name: str, api_key: str, db_connection: str):
+    def __init__(self, user_name: Text, api_key: Text, session_id: int = 1):
         self.username = user_name
         self.OpenAIClient = OpenAI(api_key=api_key)
-        self.session_id = 1 # each time the buffer is clear near session comes in
+        self.session_name = None
+        self.session_id = 0 # each time the buffer is clear near session comes in
         self.memory = None
         self.msgs = []
-        self.prompt = None
-        self._system_context = self._setSystemContext()
-        self._db_connection = db_connection
-        #self._dbManager = SQLChatMessageHistory(self.username, 
-        #                                        self._db_connection, 
-        #                                        CustomMessageConverter(self.username, self.session_id)
-        #                                        )
-    
-    def Chat(self, ques = None):
-        if (ques == None):
-            return "No input provided"
-        self.msgs.append({"role" : "user", "content" : ques})
-        output = self.OpenAIClient.chat.completions.create(model="gpt-3.5-turbo-1106", 
-                                                messages=self.msgs,
-                                                )
-        self.msgs.append({"role" : "assistant", "content" : output.choices[0].message.content})
-        #feedback = input(">> Is the response correct? (y/n): ")
-        #print (">> AI: Thanks for the feedback. Duely noted the reponse")
-        """
-        if(feedback == "y"):
-            self.msgs.append({"role" : "system", "content" : "Thanks for the feedback."})
-        else:
-            self.msgs.append({"role" : "system", "content" : "Sorry for the inconvenience. We will try to improve."})
-        """
+        self.msg_id = None
+        self.user_input = None
+        self.output = None
+        self.total_tokens = 0
+        self.prompt_tokens = 0
+        self.output_tokens = 0
+        self.OPENAI_params = OPENAI_Utils()
         
-        return output.choices[0].message.content
-        # store the messages in the database
-        #self._dbManager.add_user_message(HumanMessage(content = ques))
-        #self._dbManager.add_ai_message(AIMessage(content = output.choices[0].message.content))
-        #self._dbManager.add_system_message(SystemMessage(content = self.msgs[-1].content))
-            
+        # private variables
+        self._setDefaultSystemContext()
     
-    def _setSystemContext(self, context_msgs = None) -> list:
+    def setUserInput(self, user_input: str):
+        self.user_input = user_input
+    
+    def setUserDefaultContext(self, user_context: list = []):
+        for context in user_context:
+            self.msgs.append({"role" : "user", "content" : context})
+    
+    def getMessages(self):
+        return self.msgs
+    
+    def resetAndStartSession(self, session_name: str, user_context: list = []):
+        self.session_name = session_name
+        self.msgs = []
+        self._setDefaultSystemContext()
+        if(len(user_context) > 0):
+            self.setUserDefaultContext(user_context)
+        self.used_tokens = 0
+        self.prompt_tokens = 0
+        self.output_tokens = 0
+        self.session_id += 1
+        self.memory = None
+                
+    
+    def Chat(self):
+        self.msgs.append({"role" : "user", "content" : self.user_input})
+        return_string = ""
+        try:
+            
+            output = self.OpenAIClient.chat.completions.create(model=self.OPENAI_params.GPT_MODEL,
+                                                    messages=self.msgs, 
+                                                    temperature=self.OPENAI_params.TEMPERATURE,
+                                                    max_tokens=self.OPENAI_params.MAX_TOKENS,
+                                                    )
+            self.msg_id = output.id
+            self.output = output.choices[0].message.content
+            self.output_tokens = output.usage.completion_tokens
+            self.prompt_tokens = output.usage.prompt_tokens
+            self.total_tokens = output.usage.total_tokens
+            self.msgs.append({"role" : "assistant", "content" : output.choices[0].message.content})
+            return_string = output.choices[0].finish_reason
+        except Exception as e:
+            return_string = e
+        return return_string
+    
+    def _setDefaultSystemContext(self, context_msgs= None):
         if (not context_msgs):
-            context_1 = """You are an expert python programmer, very proficient in the following python packages. 
-            1. numpy 
-            2. pandas
-            3. pytorch especially using cuda for GPU acceleration
-            4. hdf5 
-            5. tensorflow
-            """
-            self.msgs.append({"role" : "system", "content" : context_1})
-            context_2 = """You are very critical in writing code with no Run Time errors. You can write code snippets in python."""
-            #self._dbManager.add_system_message(SystemMessage(content = context_1))
-            self.msgs.append({"role" : "system", "content" : context_2})
-            #self._dbManager.add_system_message(SystemMessage(content = context_2))
+            for msg in self.OPENAI_params.getDefaultContexts():
+                self.msgs.append({"role" : "system", "content" : msg})
+                
         else:
             for msg in context_msgs:
                 self.msgs.append({"role" : "system", "content" : msg})
-                #self._dbManager.add_system_message(SystemMessage(content = msg))
-        return self.msgs
     

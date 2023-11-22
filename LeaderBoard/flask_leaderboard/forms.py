@@ -77,3 +77,11 @@ class LoginForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired()])
     remember = BooleanField('Remember Me')
     submit = SubmitField('Login')
+
+
+class OpenAISessionForm(FlaskForm):
+    name = StringField('Session Name', validators=[DataRequired()], default="Chat Session")
+    context = StringField('Set your Context', default="")
+    submit = SubmitField('Open Session')
+    
+    
