@@ -14,7 +14,54 @@ h1, h2, h3, h4, h5, h6 {
   background-color: black;
   height: 10%;
   width: 100%;
+}
 
+.boxed-container {
+    margin: auto;
+    width: 50%;
+    padding: 10px;
+    overflow: scroll;
+}
+
+.chat-display-container {
+    margin: auto;
+    width: 80%;
+    padding: 10px;
+    overflow: scroll;
+    height: 40%;
+    min-height: 40%;
+    max-height: 40%;
+}
+
+.chat-input-text-container {
+  margin: auto;
+  width: 80%;
+  padding: 10px;
+}
+
+
+
+.container {
+  margin-left: 2%;
+  margin-right: 2%;
+  margin-top: 2%;
+  margin-bottom: 5px;
+  align-content: stretch;
+  overflow: scroll;
+  max-width: 95%;
+
+}
+
+.container-fluid {
+  width:95%
+  margin-right: 5%;
+  padding:10px 0px 70px 0px;
+  }
+
+.navbar {
+  width: 100%;
+  max-width: 100%;
+  align-items: center;
 }
 
 .new-navstyle {
@@ -179,17 +226,22 @@ table{
   width:100%;
   table-layout: fixed;
   align-content: center;
+  margin: auto;
 
 }
 .tbl-header{
   background-color: rgba(255,255,255,0.3);
   width: 100%;
+  max-width: 100%;
+  text-align: center;
+  margin: auto;
  }
 .tbl-content{
-  height:20%;
+  height:10%;
+  max-width: 100%;
   overflow-x:auto;
-  margin-top: 0px;
   border: 1px solid rgba(255,255,255,0.3);
+  margin: auto;
 }
 
 th{
@@ -254,6 +306,9 @@ td{
   width: 100%;
   text-align: center;
   align-items: center;
+  align-content: center;
+  align-items: center;
+  margin: auto;
 }
 
 .q1box {
@@ -267,7 +322,7 @@ td{
 }
 
 .q1box:hover {
-  transform: scale(2);
+  transform: scale(1.2);
 }
 
 .q2box {
@@ -282,7 +337,7 @@ td{
 }
 
 .q2box:hover {
-  transform: scale(2);
+  transform: scale(1.2);
 }
 
 .q3box {
@@ -296,7 +351,7 @@ td{
 }
 
 .q3box:hover {
-  transform: scale(2);
+  transform: scale(1.2);
 }
 
 .qheader {

@@ -1,0 +1,43 @@
+{% extends 'layout.html' %}
+<link href="{{ url_for('static', filename='sidebar.css') }}" rel="stylesheet" type="text/css">
+<link href="{{ url_for('static', filename='simplemde.min.css') }}" rel="stylesheet" type="text/css">
+
+{% block content %}
+    {% block javascript %}
+    <script src="{{ url_for('static',filename='sidebar.js') }}"></script>
+    <script src="{{ url_for('static',filename='simplemde.min.js') }}"></script>
+    {% endblock %}
+    <div class="container-fluid">
+        <div class="row">
+            <div id="mySidebar" class="sidebar">
+                <a class="closebtn" onclick="closeNav()">&times;</a>
+                <br>
+                {% for session in sessionsList %}
+                    <a class="closebtn" href="#">{{ session.name }}
+                    <br>
+                    </a>
+                {% endfor %}
+            </div>
+            <div id="sideNav">
+                <button class="openbtn" onclick="openNav()">☰ Previous Sessions</button>  
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Session - {{ chats.name }}</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group mr-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary">Tokens used - {{ chats.tokensused }}</button>
+                            <a href="{{ url_for('start_session') }}" class="btn btn-sm btn-outline-secondary">Refresh Session</a>
+                        </div>
+                    </div>
+                </div>
+              </div>
+            </div>
+        </div>
+        <div style="width: 50%; height: 50%;">   
+            <textarea id="MyID"></textarea>
+        </div>
+        <script>
+            var simplemde = new SimpleMDE({ element: document.getElementById("MyID") });
+        </script>
+    </div>
+    
+{% endblock %}

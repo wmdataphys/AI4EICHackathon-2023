@@ -19,6 +19,9 @@ class OpenAIChat:
         self.prompt_tokens = 0
         self.output_tokens = 0
         self.OPENAI_params = OPENAI_Utils()
+        self.codefile = None
+        self.files = {"bash" : [], "python" : []}
+
         
         # private variables
         self._setDefaultSystemContext()
@@ -45,7 +48,10 @@ class OpenAIChat:
         self.session_id += 1
         self.memory = None
                 
-    
+    def write_file(self,filename='your_code.py'):
+        if self.codefile is not None:
+            with open(filename, 'w') as file:
+                file.write(self.codefile)
     def Chat(self):
         self.msgs.append({"role" : "user", "content" : self.user_input})
         return_string = ""

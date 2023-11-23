@@ -13,6 +13,24 @@ class OPENAI_Utils:
     def getTemperature(self):
         return self.TEMPERATURE
     
+    def split(self,input):
+        delimiter = "```"
+        splits = input.split(delimiter)
+        codes = splits[1::2]
+        text = splits[::2]
+
+        code = []
+        name = []
+        for i in range(len(codes)):
+            n,c = codes[i].split('\n',maxsplit=1)
+            if n in ['python','bash']:# Lets think about this.
+                 n = True
+            else:
+                n = False
+            code.append(c)
+            name.append(n)
+
+        return code,text,name    
     def getDefaultContexts(self):
         """_summary_ : This function returns the default context for the chatbot"""
         # To do This is to be reviewed by @james

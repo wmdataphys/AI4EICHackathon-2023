@@ -1,7 +1,8 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed, FileRequired
 from flask_login import current_user
-from wtforms import StringField, PasswordField, SubmitField, BooleanField, TextAreaField, SelectField
+from wtforms import StringField, PasswordField, SubmitField, HiddenField
+from wtforms import BooleanField, TextAreaField, SelectField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
 from flask_leaderboard.models import User, Team
 
@@ -80,8 +81,9 @@ class LoginForm(FlaskForm):
 
 
 class OpenAISessionForm(FlaskForm):
-    name = StringField('Session Name', validators=[DataRequired()], default="Chat Session")
-    context = StringField('Set your Context', default="")
-    submit = SubmitField('Open Session')
+    name = StringField('Session Name', validators=[DataRequired()], default="Chat Session", render_kw={"placeholder" : "Name your session here. Default Session-#name"})
+    #context = StringField('Set your Context', default="")
+    context = TextAreaField('Set you Context', render_kw={"rows": 2, "cols": 11})
+    submit = SubmitField('Open new Session')
     
     
