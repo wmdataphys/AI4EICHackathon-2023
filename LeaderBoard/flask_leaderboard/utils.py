@@ -35,10 +35,17 @@ class OPENAI_Utils:
         text = splits[::2]
 
         code = []
+        name = []
         for i in range(len(codes)):
-            code.append(codes[i].split('\n',maxsplit=1)[1])
+            n,c = codes[i].split('\n',maxsplit=1)
+            if n in ['python','bash']:# Lets think about this.
+                 n = True
+            else:
+                n = False
+            code.append(c)
+            name.append(n)
 
-        return code,text
+        return code,text,name
 
 
     def getDefaultContexts(self):

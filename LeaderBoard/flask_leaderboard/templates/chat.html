@@ -2,23 +2,39 @@
 {% block content %}
 
 <!-- Begin page content -->
-<div class="overflow-auto">
-  <br>
-  <br>
-
-  <div id="list-group" class="list-group w-auto">
-    <a href="#" class="list-group-item list-group-item-action d-flex gap-3 py-3">
-      <img src="https://digital-practice.ams3.cdn.digitaloceanspaces.com/static%2Fapp%2Fimg%2Fopenai-logo.png" alt="twbs" width="32" height="32" class="rounded-circle flex-shrink-0">
-      <div class="d-flex gap-2 w-100 justify-content-between">
-        <div>
-          <p class="mb-0 opacity-75">Hello, I am the chatbot for the AI4EIC Hackathon. How may I help you?</p>
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-2 position-fixed d-flex align-items-center justify-content-between custom-sidebar">
+      <div class="row">
+        <div class="col-12 text-center">
+          <button class="btn btn-primary mb-2">Button 1</button>
         </div>
+        <div class="col-12 text-center">
+          <button class="btn btn-secondary mb-2">Button 2</button>
+        </div>
+        <!-- Add more buttons as needed -->
       </div>
-    </a>
-  </div>
-  <div class="input-group mb-3">
-    <textarea id="chat-input" class="form-control custom-control" oninput='this.style.height = "";this.style.height = this.scrollHeight + "px"'></textarea>
-    <span id="gpt-button" class="input-group-asson btn btn-primary">Ask ChatGPT</span>
+      <!-- ... other sidebar content ... -->
+    </div>
+    <div class="col-md-10 offset-md-2">
+      <!-- Your main content goes here -->
+      <br>
+      <br>
+      <div id="list-group" class="list-group w-auto">
+        <a href="#" class="list-group-item list-group-item-action d-flex gap-3 py-3">
+          <img src="https://digital-practice.ams3.cdn.digitaloceanspaces.com/static%2Fapp%2Fimg%2Fopenai-logo.png" alt="twbs" width="32" height="32" class="rounded-circle flex-shrink-0">
+          <div class="d-flex gap-2 w-100 justify-content-between">
+            <div>
+              <p class="mb-0 opacity-75">Hello, I am the chatbot for the AI4EIC Hackathon. How may I help you?</p>
+            </div>
+          </div>
+        </a>
+      </div>
+      <div class="input-group mb-3">
+        <textarea id="chat-input" class="form-control custom-control" oninput='resizeTextarea(this)'></textarea>
+        <span id="gpt-button" class="input-group-asson btn btn-primary">Ask ChatGPT</span>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -27,6 +43,8 @@
 
 <script>
   $(document).ready(function () {
+    let isChatting = false;
+
     $("#gpt-button").attr("disabled", true);
 
     $("#gpt-button").click(function () {
@@ -35,6 +53,7 @@
 
     $("#chat-input").keypress(function (event) {
       if (event.which == 13) {
+        event.preventDefault();
         chat();
       }
     });
@@ -53,10 +72,16 @@
       a.remove();
     }
 
+    document.getElementById('chat-input').addEventListener('input', resizeTextarea);
+
     function chat() {
+      if (isChatting) {
+        return; // Don't proceed if a chat request is already ongoing
+      }
+
       var question = $("#chat-input").val();
       console.log("Test");
-      $("#chat-input").val('');
+      $("#chat-input").focus();
 
       let html_data = '';
       html_data += `<a href="#" class="list-group-item list-group-item-action d-flex gap-3 py-3">
@@ -69,11 +94,17 @@
       </a>`;
       $("#chat-input").val('');
       $("#list-group").append(html_data);
+      resetTextarea();
+
+      isChatting = true; // Set the flag to indicate the start of the chat request
 
       $.ajax({
         type: "POST",
         url: "/chat",
         data: { 'prompt': question },
+        beforeSend: function () {
+          $("#gpt-button").attr("disabled", true);
+        },
         success: function (data) {
           let gpt_data = '';
           gpt_data += `
@@ -85,6 +116,10 @@
           </a>`;
           $("#list-group").append(gpt_data);
           generateCodeBox(data);
+        },
+        complete: function () {
+          isChatting = false; // Reset the flag when the chat request is complete
+          $("#gpt-button").attr("disabled", false);
         }
       });
     }
@@ -93,7 +128,6 @@
 
 <script>
     function generateCodeBox(data) {
-
       const chatContainer = document.createElement('div');
       chatContainer.classList.add("chat-box")
       for (let i = 0; i <= data.n_code - 1; i++) {
@@ -112,7 +146,9 @@
           text_box.innerHTML = `<div class='text-box'>${data.text[i]}</div>`;
 
           codeContainer.appendChild(codeBox);
-          codeContainer.appendChild(button);
+          if (data.is_downloadable[i]) {
+          codeContainer.appendChild(button);}
+
           chatContainer.appendChild(text_box);
           chatContainer.appendChild(codeContainer);
       }
@@ -125,4 +161,36 @@
     }
 </script>
 
+<script>
+    function updateButtonTitles(titles) {
+      var sidebar = document.getElementById('sidebar');
+      var buttons = sidebar.querySelectorAll('button');
+
+      buttons.forEach(function(button, index) {
+        button.innerText = titles[index];
+      });
+    }
+</script>
+
+<script>
+  function resizeTextarea() {
+    const textarea = document.getElementById('chat-input');
+
+    // Set the fixed height for the textarea
+    const fixedHeight = 70; // You can adjust this value based on your design
+
+    // Set the height to be fixed
+    textarea.style.height = fixedHeight + 'px';
+
+    // Reset the scroll position to the bottom
+    textarea.scrollTop = textarea.scrollHeight;
+  }
+</script>
+
+<script>
+    function resetTextarea() {
+      const textarea = document.getElementById('chat-input');
+      textarea.style.height = ''; // Reset the height
+    }
+</script>
 {% endblock content %}

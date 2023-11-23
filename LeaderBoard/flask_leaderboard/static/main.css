@@ -363,13 +363,13 @@ td{
 .code-box {
     background-color: #282c34;
     color: #00ff00
-    border-radius: 5px;
-    overflow: hidden;
+    border-radius: 50px;
+    overflow: auto;
     width: auto;
-    max-width: auto;
+    max-width: 100%;
     height: auto;
     max-height: 100%;
-    margin: 10;
+    margin: 0 autho;
     padding: 10px;
 }
 
@@ -394,11 +394,12 @@ td{
   overflow-x: auto;
   margin: 0;
   padding: 0;
-  font-size: 11px;
+  font-size: 14px;
+  color: #FFFFFF;
 }
 
 .code span::before {
-  color: #00ff00;
+  color: #FFFFFF;
 }
 
 .line-numbers {
@@ -422,3 +423,7 @@ td{
 .join_div {
         background-color: #fff;
     }
+
+.custom-sidebar {
+  background-color: black; /* Change this to your desired color */
+}

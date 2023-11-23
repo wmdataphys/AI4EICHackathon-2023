@@ -205,11 +205,12 @@ def chat():
         #answer = flask_leaderboard.aiapi.generateChatResponse(prompt)
         res = {}
         res['prompt'] = agent.user_input
-        code,text = util.split(agent.output)
+        code,text,download = util.split(agent.output)
         res['code'] =  code
         res['text'] = text
         res['n_code'] = len(code)
         res['n_text'] = len(text)
+        res['is_downloadable'] = download
         agent.write_file('your_code.py')
         return jsonify(res), 200
     return render_template('chat.html', title='Chat Bot', **locals())
