@@ -34,7 +34,7 @@
         <textarea id="chat-input" class="form-control custom-control" oninput='resizeTextarea(this)'></textarea>
         <span id="gpt-button" class="input-group-asson btn btn-primary">Ask ChatGPT</span>
       </div>
-    
+
     </div>
   </div>
 </div>
@@ -130,28 +130,116 @@
 <script>
     function generateCodeBox(data) {
       const chatContainer = document.createElement('div');
-      chatContainer.classList.add("chat-box")
+      chatContainer.classList.add('chat-box');
+
+      // Declare downloadButton outside the loop
+      var downloadButton;
+
       for (let i = 0; i <= data.n_code - 1; i++) {
-          var button = document.createElement("button");
-          button.innerHTML = "Download Code";
-          button.onclick = function() {
-            alert("Button clicked!");
+        var codeBox = document.createElement('div');
+        codeBox.classList.add('code-box');
+
+        var codeContainer = document.createElement('div');
+        var text_box = document.createElement('div');
+        text_box.classList.add('text-box');
+
+        codeBox.innerHTML = `<code class='code-box'>${data.code[i]}</code>`;
+        text_box.innerHTML = `<div class='text-box'>${data.text[i]}</div>`;
+
+        codeContainer.appendChild(codeBox);
+
+        if (data.is_downloadable[i]) {
+          downloadButton = document.createElement('button');
+          downloadButton.innerHTML = 'Download Code';
+
+          downloadButton.onclick = function () {
+            // Disable the "Download Code" button to prevent multiple clicks
+            downloadButton.disabled = true;
+
+            const filenameInput = document.createElement('input');
+            filenameInput.type = 'text';
+            filenameInput.placeholder = 'Enter entire file name...';
+
+            const pushButton = document.createElement('button');
+            pushButton.innerHTML = 'Push';
+            pushButton.style.color = 'red'
+
+            const cancelButton = document.createElement('button');
+            cancelButton.innerHTML = 'Cancel';
+
+            const successMessage = document.createElement('div');
+            successMessage.style.color = 'green';
+
+            cancelButton.onclick = function () {
+              // Remove the input, buttons, and success message on cancel
+              filenameInput.remove();
+              pushButton.remove();
+              cancelButton.remove();
+              successMessage.remove();
+
+              // Enable the "Download Code" button again
+              downloadButton.disabled = false;
+            };
+
+            pushButton.onclick = function () {
+              const filename = filenameInput.value.trim();
+              if (filename !== '') {
+                // Call your logic here to process the data (e.g., send to server)
+                const dataToSend = {
+                  filename: filename,
+                  code: data.code[i]
+                };
+
+                // Make an AJAX request to send data to the server
+                $.ajax({
+                  type: "POST",
+                  url: "/process_text",
+                  contentType: 'application/json;charset=UTF-8',
+                  data: JSON.stringify(dataToSend),
+                  success: function (response) {
+                    // Remove the input and buttons after pushing
+                    filenameInput.remove();
+                    pushButton.remove();
+                    cancelButton.remove();
+
+                    // Display success message
+                    const successMessage = document.createElement('div');
+                    successMessage.style.color = 'green';
+                    successMessage.innerHTML = 'Successfully pushed to AWS.';
+                    codeContainer.appendChild(successMessage);
+
+                    // Enable the "Download Code" button again
+                    downloadButton.disabled = false;
+
+                    // Fade out the success message after 3 seconds
+                    setTimeout(function () {
+                      successMessage.style.opacity = '0';
+                      setTimeout(function () {
+                        successMessage.remove();
+                      }, 1000); // Remove the success message after fade out
+                    }, 3000);
+                  },
+                  error: function (error) {
+                    // Handle errors if the request fails
+                    alert("Error sending data to the server.");
+                    console.error(error);
+                  }
+                });
+              } else {
+                alert('Please enter a valid filename.');
+              }
+            };
+
+            codeContainer.appendChild(filenameInput);
+            codeContainer.appendChild(pushButton);
+            codeContainer.appendChild(cancelButton);
           };
 
-          var codeBox = document.createElement('div');
-          codeBox.classList.add('code-box')
-          var codeContainer = document.createElement('div');
-          var text_box = document.createElement('div');
-          text_box.classList.add('text-box')
-          codeBox.innerHTML = `<code class='code-box'>${data.code[i]}</code>`;
-          text_box.innerHTML = `<div class='text-box'>${data.text[i]}</div>`;
+          codeContainer.appendChild(downloadButton);
+        }
 
-          codeContainer.appendChild(codeBox);
-          if (data.is_downloadable[i]) {
-          codeContainer.appendChild(button);}
-
-          chatContainer.appendChild(text_box);
-          chatContainer.appendChild(codeContainer);
+        chatContainer.appendChild(text_box);
+        chatContainer.appendChild(codeContainer);
       }
 
       var text_box = document.createElement('div');
@@ -194,4 +282,5 @@
       textarea.style.height = ''; // Reset the height
     }
 </script>
+
 {% endblock content %}
