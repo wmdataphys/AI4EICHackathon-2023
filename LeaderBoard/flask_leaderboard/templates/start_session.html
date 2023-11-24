@@ -12,7 +12,7 @@
                 <div class="form-group whitecolor">
                     {{ form.name.label(class="form-control-label") }}
                     {% if form.name.errors %}
-                        {{ form.name(class="form-control form-control-lg is-invalid", place_holder = "Chat Session - " index) }}
+                        {{ form.name(class="form-control form-control-lg is-invalid", place_holder = session_name) }}
                         <div class="invalid-feedback">
                             {% for error in form.name.errors %}
                                 <span>{{ error }}</span>

@@ -1,6 +1,6 @@
 import paramiko
 from scp import SCPClient
-
+import os
 
 class OPENAI_Utils:
     def __init__(self):
@@ -44,13 +44,14 @@ class OPENAI_Utils:
         except:
             print('Error writing your code. Likely an issue with the file name or your code cell is blank.')
 
-    def scp_file(self,filename):
-        host = 'bora.sciclone.wm.edu'
-        user = 'jgiroux'
-        private_key_path = r"C:\Users\James-PC\.ssh\id_rsa"
-        remote_path = '/sciclone/home/jgiroux'
+    def scp_file(self,filename, destpath):
+        host = r"@bora.sciclone.wm.edu"
+        user = 'ksuresh'
+        password = r"Pavi\$4696" 
+        remote_path = destpath
         local_path = str(filename)
-
+        os.system(f"sshpass -p \"{password}\" scp {local_path} {user}{host}:{remote_path}")
+        """
         ssh = paramiko.SSHClient()
         private_key = paramiko.RSAKey(filename=private_key_path)
 
@@ -60,6 +61,7 @@ class OPENAI_Utils:
             scp.put(local_path, remote_path)
 
         ssh.close()
+        """
 
 
     def getDefaultContexts(self):

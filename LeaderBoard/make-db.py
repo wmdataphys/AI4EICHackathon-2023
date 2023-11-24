@@ -26,7 +26,7 @@ passwords = ["AI4EIC"]*len(team_names)
 # Note that there could be people with same name in different teams
 users = dict()
 for player in range(0, 41, 4):
-    users[f"Team {player//4 + 1}"] = [f"Player {player + 1}", f"Player {player + 2}", f"Player {player + 3}", f"Player {player + 4}"]
+    users[f"Team {player//4 + 1}"] = [f"Player_{player + 1}", f"Player_{player + 2}", f"Player_{player + 3}", f"Player_{player + 4}"]
 
 db.create_all()
 for team, pword in zip(team_names, passwords):

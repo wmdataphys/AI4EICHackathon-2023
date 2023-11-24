@@ -115,7 +115,7 @@ class ChatSessions(db.Model, UserMixin):
     ChatHistory = db.relationship('ChatInfo', backref = "session_index", lazy = True)
     
     def __repr__(self):
-        return f"ChatSessions('{self.username}', '{self.session_id}')"
+        return f"ChatSessions('{self.username}', '{self.index}', '{self.uuid}')"
 
 class ChatInfo(db.Model, UserMixin):
     __tablename__ = 'chatinfo'

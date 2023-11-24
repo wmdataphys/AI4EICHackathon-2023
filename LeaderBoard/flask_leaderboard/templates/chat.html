@@ -47,8 +47,8 @@
     let currentSection = "default"; // Default section
 
     // Load the saved tab content and button states on page load
-    loadTabContent();
-    loadButtonStates();
+    //loadTabContent();
+    //loadButtonStates();
 
     // Handle section changes
     $(".section-link").click(function () {
@@ -56,7 +56,7 @@
       currentSection = $(this).attr("data-section");
 
       // Load the saved button states for the new section
-      loadButtonStates();
+      //loadButtonStates();
     });
 
     $("#gpt-button").attr("disabled", true);
@@ -66,7 +66,7 @@
     });
 
     $("#chat-input").keypress(function (event) {
-      if (event.which === 13) {
+      if (event.which == 13) {
         event.preventDefault();
         chat();
       }
@@ -162,7 +162,7 @@
       $.ajax({
         type: "POST",
         url: "/chatGPT",
-        data: { 'prompt': question, 'chat_id' : {{ chat_id }} },
+        data: { 'prompt': question },
         beforeSend: function () {
           $("#gpt-button").attr("disabled", true);
         },

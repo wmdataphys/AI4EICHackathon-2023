@@ -6,6 +6,7 @@ from flask_login import LoginManager
 from flask_leaderboard.OpenAIAg.OpenAIChat import OpenAIChat
 from flask_leaderboard.utils import OPENAI_Utils
 from flask_session import Session
+from flask_caching import Cache
 from datetime import timedelta
 
 
@@ -24,6 +25,13 @@ app.app_context().push()
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 
+config = {
+    "DEBUG": True,          # some Flask specific configs
+    "CACHE_TYPE": "SimpleCache",  # Flask-Caching related configs
+    "CACHE_DEFAULT_TIMEOUT": 300
+}
+app.config.from_mapping(config)
+cache = Cache(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 login_manager.login_message_category = 'info'
@@ -55,6 +63,7 @@ app.config["MAX_TOKENS"] = constants.MAX_TOKENS
 app.config["GPT_MODEL"] = constants.GPT_MODEL
 app.config["TEMPERATURE"] = constants.TEMPERATURE
 
+session_team_user = dict()
 
 if(not os.path.exists(app.config['RES_FOLDER'])):
     os.makedirs(app.config['RES_FOLDER'])

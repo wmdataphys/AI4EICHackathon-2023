@@ -21,3 +21,5 @@
 *.DS_Store*
 *.pyc
 *.ipynb*
+
+*flask_session*
