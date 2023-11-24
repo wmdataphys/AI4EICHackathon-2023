@@ -12,15 +12,23 @@ from flask_leaderboard.evaluator import Evaluate, evaluate
 import flask_leaderboard.aiapi
 import flask_leaderboard.config
 from flask_leaderboard.OpenAIAg.OpenAIChat import OpenAIChat
+<<<<<<< HEAD
 import logging
 # Some default settings
 from flask_leaderboard.utils import OPENAI_Utils
+=======
+from uuid import uuid1, uuid5
+>>>>>>> 6e6556e (my changes akrthik)
 
 utility = OPENAI_Utils()
 
 @app.before_request
 def make_session_permanent():
     session.permanent = False
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    return render_template("error_500.html", e=e), 500
 
 @app.errorhandler(404)
 def page_not_found(e):
@@ -48,7 +56,7 @@ def leaderboard():
     ques_dict = dict()
     for qnum in range(1, 4):
         ques_dict[qnum] = Question.query.filter(Question.qnumber == qnum).order_by(Question.qscore.desc()).all()[:3]
-    return render_template('leaderboard.html', teaminfo = TeamInfo, ques_info = ques_info, ques_dict = ques_dict)
+    return render_template('leaderboard.html', teaminfo = TeamInfo, ques_info = ques_info, ques_dict = ques_dict, sess_id = session.get("uuid"))
 
 
 @app.route("/allteams")
@@ -71,6 +79,9 @@ def current_teamstat():
 def logout():
     logout_user()
     session.pop("openai_session", None)
+    session.pop("openai_user", None)
+    session.pop("uuid", None)
+    session.pop("user", None)
     return redirect(url_for('leaderboard'))
 
 @app.route("/login", methods=['GET', 'POST'])
@@ -82,19 +93,18 @@ def login():
             return redirect(url_for('leaderboard'))
     form = LoginForm()
     if form.validate_on_submit():
-        team = Team.query.filter_by(name=form.teamname.data).first()
+        teamname = form.teamname.data
+        team = Team.query.filter_by(name=teamname).first()
         user = User.query.filter_by(username=form.username.data, teamname = form.teamname.data).first()
         if user and team and bcrypt.check_password_hash(team.password, form.password.data):
             # if authenticated, Check for the last session
-            app.config["OPENAI_USERS"][user.username] = OpenAIChat(user.username, flask_leaderboard.config.DevelopmentConfig.OPENAI_KEY, "None")
-            # Set the session ID for the user.
-            app.config["OPENAI_USERS"][user.username].session_id = len(user.AllChatSessions)
             session["openAI_active"] = False
+            session["user"] = user.username
             login_user(user, remember=form.remember.data)
-            return redirect(url_for('leaderboard'))
+            return redirect(url_for(request.args.get("next", 'leaderboard')))
         else:
             flash('Login Unsuccessful. Please check team, username and password', 'danger')
-    return render_template('login.html', title='Login', form=form)
+    return render_template('login.html', title='Login', form=form, sess_id = session.get("uuid"))
 
 def EvaluateQScore(team):
     qscores = dict()
@@ -174,43 +184,70 @@ def start_session():
         user_name = current_user.username
         team_name = current_user.teamname
         session_name = form.name.data
-        if (session_name == "Chat Session"):
-            session_name += f' - {app.config["OPENAI_USERS"][user_name].session_id + 1}'
+        print (f"session name is {session_name}")
         context = form.context.data
+<<<<<<< HEAD
         app.config["OPENAI_USERS"][user_name].resetAndStartSession(session_name = session_name, user_context = [context])
         session_id = app.config["OPENAI_USERS"][user_name].session_id
         chatsession = ChatSessions(sessioname = session_name,
                                username = user_name,
                                session_id = session_id,
                                const_sys_context = "",
+=======
+        session["openAIChatAgent"] = OpenAIChat(user_name, 
+                                                flask_leaderboard.config.DevelopmentConfig.OPENAI_KEY
+                                                )
+        
+        session_index = session["user"].TotalSessions
+        
+        temp_str = f"{team_name}_{user_name}_{session_index}" + str(uuid1())
+        session_uuid = uuid5(uuid.NAMESPACE_OID, temp_str)
+        
+        chatsession = ChatSessions(sessioname = session_name, 
+                               username = user_name, 
+                               index = session_index, 
+                               uuid = session_uuid,
+                               start_time = datetime.now(),
+                               end_time = datetime.now(),
+                               const_sys_context = "", 
+>>>>>>> 6e6556e (my changes akrthik)
                                user_sys_context = context)
+        session["user"].TotalSessions+=1
         db.session.add(chatsession)
         db.session.commit()
         session["openAI_active"] = True
+<<<<<<< HEAD
         return redirect(url_for('chat', session_id = session_id))
     session_html = render_template('start_session.html', title = 'Start Session', form = form)
     with open("test.html", "w") as _f:
         _f.write(session_html)
 
     return render_template('start_session.html', title = 'Start Session', form = form)
+=======
+        return redirect(url_for('chat', session_id = session_uuid))
+    return render_template('start_session.html', title = 'Start Session', form = form, index=session_index)
+
+>>>>>>> 6e6556e (my changes akrthik)
 @app.route("/chat_test/<session_id>", methods = ['GET', 'POST'])
 def chat_test(session_id):
     sessionList = [{"name" : "Chat Session 1", "id" : 1}, {"name" : "Chat Session 2", "id" : 2}]
     chats = {"chats" : [], "tokensused" : 300, "name" : f"Chat Session {session_id}", "id" : 1}
-    return render_template('chat_new.html', sessionsList = sessionList, chats = chats)
+    return render_template('chats.html', sessionsList = sessionList, chats = chats)
 
 @app.route("/chatGPT", methods = ['POST','GET'])
 @login_required
 def chatGPT():
     # get the OPENAIAgent object
     user_name = current_user.username
-    if(not app.config["OPENAI_USERS"][user_name]):
+    if(not session.get("openAI_active")):
         user_needs_refresh()
-    agent = app.config["OPENAI_USERS"][user_name]
+    agent = session["openAIChatAgent"]
     agent.user_input = request.form['prompt']
+    chat_id = request.form['chat_id']
     return_reason = agent.Chat()
     if (return_reason != "stop"):
         print ("something is wrong with ChatGPT check it ", return_reason)
+<<<<<<< HEAD
     answer = agent.output
     chatinfo = ChatInfo(username = user_name,
                         session_id = agent.session_id,
@@ -218,9 +255,23 @@ def chatGPT():
                         ai_response = agent.output,
                         system_response = "",
                         feedback = True,
+=======
+    
+    chatinfo = ChatInfo(index = chat_id,
+                        chat_id = agent.msg_id,
+                        username = user_name, 
+                        session_uuid = session.get("uuid"), 
+                        user_prompt = agent.user_input, 
+                        ai_response = agent.output, 
+                        system_response = "", # feedback reponse
+                        feedback = True, 
+>>>>>>> 6e6556e (my changes akrthik)
                         prompt_tokens = agent.prompt_tokens,
                         completion_tokens = agent.output_tokens
                         )
+    session["user"].AllChatsSessions[-1].end_time = datetime.now()
+    agent.chat_count+=1
+    session["user"].AllChatsSessions[-1].num_chats = agent.chat_count
     db.session.add(chatinfo)
     db.session.commit()
     if (agent.total_tokens > app.config["OPENAI_params"].MAX_TOKENS):
@@ -239,17 +290,30 @@ def chatGPT():
     agent.write_file('your_code.py')
     return jsonify(res), 200
 
+@app.route('/chat/', methods = ['GET', 'POST'])
+@login_required
+def chat_dummy():
+    if not current_user.is_authenticated:
+        return redirect(url_for('login', nex_page = 'start_session'))
+    if (not session["openAI_active"] or not session.get("uuid")):
+        return redirect(url_for('start_session'))
+    else:
+        return redirect(url_for('error_500.html', sess_id = session["uuid"]))
 @app.route('/chat/<session_id>', methods = ['GET', 'POST'])
 @login_required # need to be logged in to chat
 def chat(session_id):
     if not current_user.is_authenticated:
         return redirect(url_for('login'))
-    if (not session["openAI_active"]):
+    if (not session_id):
         return redirect(url_for('start_session', next_page = 'chat'))
-    if (session_id == "#"):
-        session_id = app.config["OPENAI_USERS"][current_user.username].session_id
     print (session_id)
+<<<<<<< HEAD
     return render_template('chat.html', title='Chat Bot', **locals())
+=======
+    chat_id = session["user"].AllChatSessions[-1].num_chats
+    return render_template('chat.html', title='Chat Bot', chat_id = chat_id)
+    
+>>>>>>> 6e6556e (my changes akrthik)
 
 @app.route('/process_text', methods=['POST'])
 @login_required

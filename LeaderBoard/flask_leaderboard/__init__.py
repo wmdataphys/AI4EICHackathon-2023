@@ -6,6 +6,7 @@ from flask_login import LoginManager
 from flask_leaderboard.OpenAIAg.OpenAIChat import OpenAIChat
 from flask_leaderboard.utils import OPENAI_Utils
 from flask_session import Session
+from datetime import timedelta
 
 
 #from flask_bootstrap import Bootstrap5
@@ -15,6 +16,7 @@ app = Flask(__name__)
 app.secret_key = "5791628bb0b13ce0c676dfde280ba245"
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config["SESSION_PERMANENT"] = False 
+app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=60)
 app.config['SECRET_KEY'] = '5791628bb0b13ce0c676dfde280ba245'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATION'] = False

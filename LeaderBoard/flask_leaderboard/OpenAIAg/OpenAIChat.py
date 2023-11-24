@@ -5,11 +5,21 @@ from flask_leaderboard.utils import OPENAI_Utils
 #from langchain.schema import AIMessage, BaseMessage, HumanMessage, SystemMessage
 
 class OpenAIChat:
-    def __init__(self, user_name: Text, api_key: Text, session_id: int = 1):
+    def __init__(self, 
+                 user_name: Text, 
+                 api_key: Text, 
+                 session_name: Text,
+                 session_id: int,
+                 session_uuid: Text,
+                 user_context: List[Text] = ()
+                 ):
         self.username = user_name
         self.OpenAIClient = OpenAI(api_key=api_key)
-        self.session_name = None
-        self.session_id = 0 # each time the buffer is clear near session comes in
+        self.session_name = session_name
+        self.session_id = session_id # each time the buffer is clear near session comes in
+        self.session_uuid = session_uuid
+        self.user_context = user_context
+        self.chat_count = 0
         self.memory = None
         self.msgs = []
         self.msg_id = None
@@ -36,17 +46,12 @@ class OpenAIChat:
     def getMessages(self):
         return self.msgs
     
-    def resetAndStartSession(self, session_name: str, user_context: list = []):
-        self.session_name = session_name
-        self.msgs = []
-        self._setDefaultSystemContext()
-        if(len(user_context) > 0):
-            self.setUserDefaultContext(user_context)
-        self.used_tokens = 0
+    def resetChat(self):
+        self.output = None
         self.prompt_tokens = 0
         self.output_tokens = 0
-        self.session_id += 1
-        self.memory = None
+        self.total_tokens = 0
+        self.msg_id = None
                 
     def write_file(self,filename='your_code.py'):
         if self.codefile is not None:
@@ -67,7 +72,10 @@ class OpenAIChat:
             self.output_tokens = output.usage.completion_tokens
             self.prompt_tokens = output.usage.prompt_tokens
             self.total_tokens = output.usage.total_tokens
-            self.msgs.append({"role" : "assistant", "content" : output.choices[0].message.content})
+            self.msgs.append({"role" : "assistant", 
+                              "content" : output.choices[0].message.content
+                              }
+                             )
             return_string = output.choices[0].finish_reason
         except Exception as e:
             return_string = e
@@ -81,4 +89,7 @@ class OpenAIChat:
         else:
             for msg in context_msgs:
                 self.msgs.append({"role" : "system", "content" : msg})
+        
+        if (len(self.user_context) > 0):
+            self.setUserDefaultContext(self.user_context)
     

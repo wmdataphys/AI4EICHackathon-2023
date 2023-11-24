@@ -55,10 +55,15 @@ class User(db.Model, UserMixin):
                                unique = False, 
                                nullable = False
                                )
+    TotalSessions = db.Column(db.Integer, 
+                              nullable = True, 
+                              default = 0
+                              )
     questions = db.relationship('Question',
                                 backref = 'Q_USER_NAME',
                                 lazy = True
                                 )
+    
     AllChatSessions = db.relationship('ChatSessions', 
                                   backref = 'USER_NAME', 
                                   lazy = True
@@ -94,23 +99,41 @@ class ChatSessions(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key = True)
     sessioname = db.Column(db.String(60), nullable = False)
     username = db.Column(db.String(60), db.ForeignKey('user.username'), nullable = False)
-    session_id = db.Column(db.Integer, nullable = False)
+    index = db.Column(db.Integer, nullable = False)
+    uuid = db.Column(db.String(60), unique = True, nullable = False)
+    start_time = db.Column(db.DateTime, 
+                           nullable = False, 
+                           default = datetime.utcnow
+                           )
+    end_time = db.Column(db.DateTime,
+                         nullable = False,
+                         default = datetime.utcnow
+                        )
     const_sys_context = db.Column(db.Text(), nullable = False, default = "")
     user_sys_context = db.Column(db.Text(), nullable = False, default = "")
-    #ChatHistory = db.relationship('ChatInfo', backref = "SESSION_ID", lazy = True)
+    num_chats = db.Column(db.Integer, nullable = False, default = 0)
+    ChatHistory = db.relationship('ChatInfo', backref = "session_index", lazy = True)
+    
     def __repr__(self):
         return f"ChatSessions('{self.username}', '{self.session_id}')"
 
 class ChatInfo(db.Model, UserMixin):
     __tablename__ = 'chatinfo'
     id = db.Column(db.Integer, primary_key = True)
+    index = db.Column(db.Integer, nullable = False)
+    chat_id = db.Column(db.Text(), nullable = False)
     username = db.Column(db.String(60), nullable = False)
-    session_id = db.Column(db.Integer, db.ForeignKey('chatsessions.session_id'), nullable = False)
+    session_uuid = db.Column(db.Integer, db.ForeignKey('chatsessions.index'), nullable = False)
+    time_of_chat = db.Column(db.DateTime, 
+                             nullable = False, 
+                             default = datetime.utcnow
+                             )
     user_prompt = db.Column(db.Text(), nullable = False)
     ai_response = db.Column(db.Text(), nullable = False)
     system_response = db.Column(db.Text(), nullable = False)
     feedback = db.Column(db.Boolean, nullable = False)
     prompt_tokens = db.Column(db.Integer, nullable = False)
     completion_tokens = db.Column(db.Integer, nullable = False)
+    is_reponse_downloaded = db.Column(db.Boolean, nullable = False, default = False)
     def __repr__(self):
         return f"ChatInfo('{self.username}')"
