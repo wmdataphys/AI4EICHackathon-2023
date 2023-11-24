@@ -1,18 +1,22 @@
+import paramiko
+from scp import SCPClient
+
+
 class OPENAI_Utils:
     def __init__(self):
         self.MAX_TOKENS = 4096
         self.GPT_MODEL = "gpt-3.5-turbo-1106"
         self.TEMPERATURE = 1.0
-        
+
     def getMaxTokens(self):
         return self.MAX_TOKENS
-    
+
     def getGPTModel(self):
         return self.GPT_MODEL
-    
+
     def getTemperature(self):
         return self.TEMPERATURE
-    
+
     def split(self,input):
         delimiter = "```"
         splits = input.split(delimiter)
@@ -30,7 +34,34 @@ class OPENAI_Utils:
             code.append(c)
             name.append(n)
 
-        return code,text,name    
+        return code,text,name
+
+
+    def write_file(self,filename,code):
+        try:
+            with open(str(filename), 'w') as file:
+                file.write(code)
+        except:
+            print('Error writing your code. Likely an issue with the file name or your code cell is blank.')
+
+    def scp_file(self,filename):
+        host = 'bora.sciclone.wm.edu'
+        user = 'jgiroux'
+        private_key_path = r"C:\Users\James-PC\.ssh\id_rsa"
+        remote_path = '/sciclone/home/jgiroux'
+        local_path = str(filename)
+
+        ssh = paramiko.SSHClient()
+        private_key = paramiko.RSAKey(filename=private_key_path)
+
+        ssh.connect(host, username=user, pkey=private_key)
+
+        with SCPClient(ssh.get_transport()) as scp:
+            scp.put(local_path, remote_path)
+
+        ssh.close()
+
+
     def getDefaultContexts(self):
         """_summary_ : This function returns the default context for the chatbot"""
         # To do This is to be reviewed by @james
@@ -42,9 +73,7 @@ class OPENAI_Utils:
         5. tensorflow
         """
         sys_context_2 = """You are very critical in writing code with no Run Time errors. You can write code snippets in python."""
-        sys_context_3 = """You will strictly not answer questions that are not related to programming, computer science and Hardonic physics. 
+        sys_context_3 = """You will strictly not answer questions that are not related to programming, computer science and Hardonic physics.
         Politely decline answering any conversation that is not related to the topic."""
-        
+
         return [sys_context_1, sys_context_2, sys_context_3]
-    
-        

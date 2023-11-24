@@ -12,8 +12,11 @@ from flask_leaderboard.evaluator import Evaluate, evaluate
 import flask_leaderboard.aiapi
 import flask_leaderboard.config
 from flask_leaderboard.OpenAIAg.OpenAIChat import OpenAIChat
+import logging
+# Some default settings
+from flask_leaderboard.utils import OPENAI_Utils
 
-# Some default settings 
+utility = OPENAI_Utils()
 
 @app.before_request
 def make_session_permanent():
@@ -176,10 +179,10 @@ def start_session():
         context = form.context.data
         app.config["OPENAI_USERS"][user_name].resetAndStartSession(session_name = session_name, user_context = [context])
         session_id = app.config["OPENAI_USERS"][user_name].session_id
-        chatsession = ChatSessions(sessioname = session_name, 
-                               username = user_name, 
-                               session_id = session_id, 
-                               const_sys_context = "", 
+        chatsession = ChatSessions(sessioname = session_name,
+                               username = user_name,
+                               session_id = session_id,
+                               const_sys_context = "",
                                user_sys_context = context)
         db.session.add(chatsession)
         db.session.commit()
@@ -188,7 +191,7 @@ def start_session():
     session_html = render_template('start_session.html', title = 'Start Session', form = form)
     with open("test.html", "w") as _f:
         _f.write(session_html)
-    
+
     return render_template('start_session.html', title = 'Start Session', form = form)
 @app.route("/chat_test/<session_id>", methods = ['GET', 'POST'])
 def chat_test(session_id):
@@ -196,7 +199,7 @@ def chat_test(session_id):
     chats = {"chats" : [], "tokensused" : 300, "name" : f"Chat Session {session_id}", "id" : 1}
     return render_template('chat_new.html', sessionsList = sessionList, chats = chats)
 
-@app.route("/chatGPT", methods = ['POST'])
+@app.route("/chatGPT", methods = ['POST','GET'])
 @login_required
 def chatGPT():
     # get the OPENAIAgent object
@@ -209,12 +212,12 @@ def chatGPT():
     if (return_reason != "stop"):
         print ("something is wrong with ChatGPT check it ", return_reason)
     answer = agent.output
-    chatinfo = ChatInfo(username = user_name, 
-                        session_id = agent.session_id, 
-                        user_prompt = agent.user_input, 
-                        ai_response = agent.output, 
+    chatinfo = ChatInfo(username = user_name,
+                        session_id = agent.session_id,
+                        user_prompt = agent.user_input,
+                        ai_response = agent.output,
                         system_response = "",
-                        feedback = True, 
+                        feedback = True,
                         prompt_tokens = agent.prompt_tokens,
                         completion_tokens = agent.output_tokens
                         )
@@ -222,7 +225,7 @@ def chatGPT():
     db.session.commit()
     if (agent.total_tokens > app.config["OPENAI_params"].MAX_TOKENS):
         pass # NEED TO CHANGE THIS
-        
+
     #answer = flask_leaderboard.aiapi.generateChatResponse(prompt)
     res = {}
     res['prompt'] = agent.user_input
@@ -247,5 +250,21 @@ def chat(session_id):
         session_id = app.config["OPENAI_USERS"][current_user.username].session_id
     print (session_id)
     return render_template('chat.html', title='Chat Bot', **locals())
-    
 
+@app.route('/process_text', methods=['POST'])
+@login_required
+def process_text():
+    # Get JSON data from the request
+    data = request.get_json()
+
+    # Extract filename and code from the JSON data
+    filename = data.get('filename')
+    code = data.get('code')
+    utility.write_file(filename,code)
+    utility.scp_file(filename)
+    # Log messages
+    app.logger.info('Received filename: %s', filename)
+    app.logger.info('Received code: %s', code)
+
+    # Return a response (you can customize this based on your needs)
+    return jsonify({'status': 'success'})

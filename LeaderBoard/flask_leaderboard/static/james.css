@@ -65,3 +65,8 @@
 .custom-sidebar {
   background-color: black; /* Change this to your desired color */
 }
+
+.inputLabel {
+  color: blue;
+  margin-bottom: 5px;
+}
