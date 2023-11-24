@@ -7,10 +7,10 @@
     <div class="col-md-2 position-fixed d-flex align-items-center justify-content-between custom-sidebar">
       <div class="row">
         <div class="col-12 text-center">
-          <button class="btn btn-primary mb-2">Button 1</button>
+          <button class="btn btn-primary mb-2 section-link" data-section="section1">Button 1</button>
         </div>
         <div class="col-12 text-center">
-          <button class="btn btn-secondary mb-2">Button 2</button>
+          <button class="btn btn-secondary mb-2 section-link" data-section="section2">Button 2</button>
         </div>
         <!-- Add more buttons as needed -->
       </div>
@@ -18,23 +18,22 @@
     </div>
     <div class="col-md-10 offset-md-2">
       <!-- Your main content goes here -->
-      <div class = "chat-display-container">
-      <div id="list-group" class="list-group w-auto">
-        <a href="#" class="list-group-item list-group-item-action d-flex gap-3 py-3">
-          <img src="https://digital-practice.ams3.cdn.digitaloceanspaces.com/static%2Fapp%2Fimg%2Fopenai-logo.png" alt="twbs" width="32" height="32" class="rounded-circle flex-shrink-0">
-          <div class="d-flex gap-2 w-100 justify-content-between">
-            <div>
-              <p class="mb-0 opacity-75">Hello, I am the chatbot for the AI4EIC Hackathon. How may I help you?</p>
+      <div class="chat-display-container">
+        <div id="list-group" class="list-group w-auto">
+          <a href="#" class="list-group-item list-group-item-action d-flex gap-3 py-3">
+            <img src="https://digital-practice.ams3.cdn.digitaloceanspaces.com/static%2Fapp%2Fimg%2Fopenai-logo.png" alt="twbs" width="32" height="32" class="rounded-circle flex-shrink-0">
+            <div class="d-flex gap-2 w-100 justify-content-between">
+              <div>
+                <p class="mb-0 opacity-75">Hello, I am the chatbot for the AI4EIC Hackathon. How may I help you?</p>
+              </div>
             </div>
-          </div>
-        </a>
+          </a>
+        </div>
       </div>
-    </div>
       <div class="chat-input-text-container input-group mb-3">
         <textarea id="chat-input" class="form-control custom-control" oninput='resizeTextarea(this)'></textarea>
         <span id="gpt-button" class="input-group-asson btn btn-primary">Ask ChatGPT</span>
       </div>
-
     </div>
   </div>
 </div>
@@ -45,6 +44,20 @@
 <script>
   $(document).ready(function () {
     let isChatting = false;
+    let currentSection = "default"; // Default section
+
+    // Load the saved tab content and button states on page load
+    loadTabContent();
+    loadButtonStates();
+
+    // Handle section changes
+    $(".section-link").click(function () {
+      // Update the current section when a section link is clicked
+      currentSection = $(this).attr("data-section");
+
+      // Load the saved button states for the new section
+      loadButtonStates();
+    });
 
     $("#gpt-button").attr("disabled", true);
 
@@ -58,6 +71,53 @@
         chat();
       }
     });
+
+    function loadTabContent() {
+      // Retrieve the stored tab content from localStorage
+      var storedTabContent = localStorage.getItem(`tabContent_${currentSection}`);
+
+      // If there's stored tab content, update the tab
+      if (storedTabContent) {
+        $("#list-group").html(storedTabContent);
+      }
+    }
+
+    function saveTabContent() {
+      // Save the current tab content for the current section to localStorage
+      var currentTabContent = $("#list-group").html();
+      localStorage.setItem(`tabContent_${currentSection}`, currentTabContent);
+    }
+
+    function loadButtonStates() {
+      // Retrieve the stored button states from localStorage
+      var storedDownloadButtonState = localStorage.getItem(`downloadButtonState_${currentSection}`);
+      var storedPushButtonState = localStorage.getItem(`pushButtonState_${currentSection}`);
+      var storedCancelButtonState = localStorage.getItem(`cancelButtonState_${currentSection}`);
+
+      // If there are stored button states, update the buttons
+      if (storedDownloadButtonState) {
+        $("#downloadButton").prop("disabled", JSON.parse(storedDownloadButtonState));
+      }
+
+      if (storedPushButtonState) {
+        $("#pushButton").prop("disabled", JSON.parse(storedPushButtonState));
+      }
+
+      if (storedCancelButtonState) {
+        $("#cancelButton").prop("disabled", JSON.parse(storedCancelButtonState));
+      }
+    }
+
+    function saveButtonStates() {
+      // Save the current button states for the current section to localStorage
+      var downloadButtonState = $("#downloadButton").prop("disabled");
+      var pushButtonState = $("#pushButton").prop("disabled");
+      var cancelButtonState = $("#cancelButton").prop("disabled");
+
+      localStorage.setItem(`downloadButtonState_${currentSection}`, downloadButtonState);
+      localStorage.setItem(`pushButtonState_${currentSection}`, pushButtonState);
+      localStorage.setItem(`cancelButtonState_${currentSection}`, cancelButtonState);
+    }
 
     function download(data) {
       const blob = new Blob([data], { type: "application/x-python-code" });
@@ -117,6 +177,8 @@
           </a>`;
           $("#list-group").append(gpt_data);
           generateCodeBox(data);
+          saveTabContent();
+          saveButtonStates(); // Save the button states after updating the chat
         },
         complete: function () {
           isChatting = false; // Reset the flag when the chat request is complete
