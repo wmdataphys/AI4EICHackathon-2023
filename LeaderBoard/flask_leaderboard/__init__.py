@@ -26,7 +26,7 @@ db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 
 config = {
-    "DEBUG": True,          # some Flask specific configs
+    "DEBUG": False,          # some Flask specific configs
     "CACHE_TYPE": "SimpleCache",  # Flask-Caching related configs
     "CACHE_DEFAULT_TIMEOUT": 300
 }
@@ -70,3 +70,5 @@ if(not os.path.exists(app.config['RES_FOLDER'])):
 
 if(not os.path.exists(app.config['UPLOAD_FOLDER'])):
     os.makedirs(app.config['UPLOAD_FOLDER'])
+
+from flask_leaderboard import routes
