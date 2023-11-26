@@ -4,7 +4,9 @@ import os
 from flask_leaderboard import app, db
 import os
 from flask_leaderboard.models import Team, User, Question
+from flask_leaderboard.utils import OPENAI_Utils
 
+utility = OPENAI_Utils()
 
 def Evaluate(filename, question_number):
 
@@ -18,6 +20,8 @@ def Evaluate(filename, question_number):
     accuracy = 100* (1 - (submitted_resfile[0] - actual_resfile[0]).sum()**2/(actual_resfile[0] + submitted_resfile[0]).sum()**2)
     return accuracy
 
+def calc_uncertainty(metric,sample):
+    return np.sqrt((1.0 - metric)/len(sample)) * 100.
 def evaluate(filepath, q):
     """
     src code From Kishan Rajput:
@@ -46,7 +50,7 @@ def evaluate(filepath, q):
 
     # Handle files with different separators (Allow only comma separated?)
     try:
-        content = pd.read_csv(filepath, header=None)
+        content = pd.read_csv(filepath,sep=',',index_col=None)
     except:
         status = "File could not be read..."
         return status, -1
@@ -60,13 +64,14 @@ def evaluate(filepath, q):
 
     # Trim the content
     content = content[columns[:2]]
+    #content = content[['eventID','PID']]
 
     if len(content) < labels.shape[0]:
         status = "Not enough predictions provided"
         return status, -1
 
     content = content[:labels.shape[0]]
-    print(content)
+    #print(content)
     # Convert df to numeric
     try:
         numeric_content = content.apply(pd.to_numeric)
@@ -78,11 +83,10 @@ def evaluate(filepath, q):
     if numeric_content.isnull().values.any():
         status = "File contains NaN"
         return status, -1
-    if(np.sum(sorted_eventID - numeric_content[0].values) !=0):
+    if(np.sum(sorted_eventID - numeric_content['eventID'].values) !=0):
         status = "Event IDs do not match"
         return status, -1
-    sorted_predictions = numeric_content.sort_values(0)
-    predictions = sorted_predictions[1]
+    predictions = numeric_content.sort_values('eventID').values[:,1]
 
 
     frac_correct = np.mean(labels == predictions)
@@ -91,5 +95,7 @@ def evaluate(filepath, q):
     if(frac_correct < threshold):
         status = f"Sorry, The performance of submission is : {frac_correct*100:.2f} which is less than threshold : {threshold*100:.2f}"
         return status, 0.0
-    score = 50.0 + 50.0*(frac_correct - threshold)/(1 - threshold)
-    return status, score
+    uncertainty = calc_uncertainty(frac_correct,predictions)
+    score = 100.*frac_correct
+    #score = 50.0 + 50.0*(frac_correct - threshold)/(1 - threshold)
+    return status, score#,uncertainty

@@ -37,22 +37,6 @@ def login_required(f):
             return redirect(url_for('login', next_page = 'chat'))
     return wrap
 
-def login_required_ajx(f):
-    @wraps(f)
-    def wrap(*args, **kwargs):
-        if(current_user.is_authenticated):
-            tmp = str(uuid5(NAMESPACE_OID, f"{current_user.teamname}_{current_user.username}"))
-            print (tmp, session.get("user_uuid"))
-            if(not session.get("user_uuid")):
-                return redirect(url_for('login', next_page = 'chat'))
-            elif (session.get("user_uuid") != tmp):
-                return abort(403)
-            else:
-                return f(*args, **kwargs)
-        else:
-            return redirect(url_for('login', next_page = 'chat'))
-    return wrap
-
 @app.before_request
 def make_session_permanent():
     session.permanent = False
@@ -62,7 +46,6 @@ def make_session_permanent():
 def handle_exception(e):
     return render_template("error_500.html", e=e), 500
 """
-
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('page_not_found.html'), 404
@@ -122,7 +105,8 @@ def logout():
     session.pop("user_uuid", None)
     session.pop("uuid", None)
     session.pop("user", None)
-    
+    session.clear()
+
     return redirect(url_for('leaderboard'))
 
 @app.route("/login", methods=['GET', 'POST'])
@@ -141,7 +125,7 @@ def login():
             # if authenticated, Check for the last session
             if(session_team_user.get(f'{teamname}_{user.username}')):
                 flash(Markup('You are already logged in elsewhere, please logout..'), 'danger')
-            else:   
+            else:
                 login_user(user, remember=form.remember.data)
                 print (f"Current user name : {current_user.username}, Team name : {current_user.teamname}")
                 session["user_uuid"] = str(uuid5(NAMESPACE_OID, f"{current_user.teamname}_{current_user.username}"))
@@ -178,10 +162,14 @@ def submit():
             if(not os.path.exists(user_folder)):
                 os.makedirs(user_folder)
             now = datetime.now().strftime("%d_%m_%Y_%H_%M_%S")
-            filename = f"Question{qnumber}_" + now + "_" + secure_filename(f.filename)
-            filepath = os.path.join(user_folder, filename)
-            f.save(filepath)
-            status, accuracy_score = evaluate(filepath, qnumber)
+            #filename = f"Question{qnumber}_" + now + "_" + secure_filename(f.filename)
+            file_path = str(f) # Remote file
+            filename = file_path.split('/')[-1]
+            #filepath = os.path.join(user_folder, filename)
+            push = False # Means pull
+            utility.scp_file(file_path,user_folder ,push)
+            eval_path = os.path.join(user_folder,filename)
+            status, accuracy_score = evaluate(eval_path, qnumber)
             question = Question(teamname = team.name,
                                 username = user.username,
                                 qnumber = qnumber,
@@ -239,21 +227,21 @@ def start_session():
         session_uuid = str(uuid5(NAMESPACE_OID, temp_str))
         session["uuid"] = session_uuid
         print ("session_uuid", session_uuid)
-        app.config["OPENAI_USERS"][user_name] = OpenAIChat(user_name, 
+        app.config["OPENAI_USERS"][user_name] = OpenAIChat(user_name,
                                                 flask_leaderboard.config.DevelopmentConfig.OPENAI_KEY,
                                                 session_name = session_name,
                                                 session_id=session_index,
                                                 session_uuid=session_uuid,
                                                 user_context=[context]
                                                 )
-        
-        chatsession = ChatSessions(sessioname = session_name, 
-                               username = user_name, 
-                               index = session_index, 
+
+        chatsession = ChatSessions(sessioname = session_name,
+                               username = user_name,
+                               index = session_index,
                                uuid = session_uuid,
                                start_time = datetime.now(),
                                end_time = datetime.now(),
-                               const_sys_context = "", 
+                               const_sys_context = "",
                                user_sys_context = context)
         session["user"].TotalSessions+=1
         db.session.add(chatsession)
@@ -284,17 +272,17 @@ def chatGPT():
         print ("something is wrong with ChatGPT check it ", return_reason)
     chatinfo = ChatInfo(index = chat_id,
                         chat_id = agent.msg_id,
-                        username = user_name, 
-                        session_uuid = session.get("uuid"), 
-                        user_prompt = agent.user_input, 
-                        ai_response = agent.output, 
+                        username = user_name,
+                        session_uuid = session.get("uuid"),
+                        user_prompt = agent.user_input,
+                        ai_response = agent.output,
                         system_response = "", # feedback reponse
-                        feedback = True, 
+                        feedback = True,
                         prompt_tokens = agent.prompt_tokens,
                         completion_tokens = agent.output_tokens
                         )
-    
-    
+
+
     lastsession.end_time = datetime.now()
     agent.chat_count+=1
     lastsession.num_chats = agent.chat_count
@@ -330,7 +318,8 @@ def chat_dummy():
 
 def return_sessID():
     return session.get("uuid")
-@app.route('/chat/<user_name>/<session_id>', methods = ['GET', 'POST'])
+@app.route('/chat/<session_id>', methods = ['GET', 'POST'])
+@cache.cached(timeout=300, key_prefix=return_sessID)
 @login_required # need to be logged in to chat
 def chat(session_id):
     if not current_user.is_authenticated:
@@ -352,11 +341,26 @@ def process_text():
     # Extract filename and code from the JSON data
     filename = data.get('filename')
     code = data.get('code')
-    utility.write_file(filename,code)
-    utility.scp_file(filename, f"~/{current_user.username}/")
+    file_path = utility.write_file(filename,code,current_user.username)
+    push = True
+    utility.scp_file(file_path, r"/home/user/workspace",push)
     # Log messages
     app.logger.info('Received filename: %s', filename)
     app.logger.info('Received code: %s', code)
+
+    # Return a response (you can customize this based on your needs)
+    return jsonify({'status': 'success'})
+
+
+@app.route('/process_feedback', methods=['POST'])
+@login_required
+def process_feedback():
+    # Get JSON data from the request
+    data = request.get_json()
+    full_interaction = data.get('containerId')
+    feedback = data.get('feedback')
+    feedback = ['Negative','Positive','Neutral'][feedback]
+    app.logger.info('Received feedback: %s', feedback)
 
     # Return a response (you can customize this based on your needs)
     return jsonify({'status': 'success'})

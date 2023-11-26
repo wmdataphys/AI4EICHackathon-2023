@@ -9,6 +9,7 @@
     max-height: 100%;
     margin: 0 autho;
     padding: 10px;
+    user-select: none;
 }
 
 .text-box {
@@ -20,6 +21,7 @@
     max-height: 100%;
     margin: 10;
     padding: 10px;
+    user-select: none;
 }
 
 .chat-box {
@@ -69,4 +71,8 @@
 .inputLabel {
   color: blue;
   margin-bottom: 5px;
+}
+
+.download-container {
+  margin-left: 10px;  // Adjust the margin to position it to the right of the button
 }

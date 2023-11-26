@@ -67,6 +67,15 @@
                         {% endfor %}
                     {% endif %}
                 </div>
+                <div class="form-group whitecolor">
+                    {{ form.pdf_file.label() }}
+                    {{ form.pdf_file(class="form-control-file") }}
+                    {% if form.pdf_file.errors %}
+                        {% for error in form.pdf_file.errors %}
+                            <span class="text-danger whitecolor">{{ error }}</span><br>
+                        {% endfor %}
+                    {% endif %}
+                </div>
             </fieldset>
             <div class="form-group whitecolor">
                 {{ form.submit(class="btn btn-outline-info btn-onclick") }}
