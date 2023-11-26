@@ -5,6 +5,7 @@ from wtforms import StringField, PasswordField, SubmitField, HiddenField
 from wtforms import BooleanField, TextAreaField, SelectField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
 from flask_leaderboard.models import User, Team
+from wtforms.validators import Regexp
 
 """
 class RegistrationForm(FlaskForm):
@@ -47,10 +48,14 @@ class SubmitForm(FlaskForm):
                         validators=[DataRequired()],
                         default = -1
                         )
-    result_file = FileField(r"Upload Results file ('.csv')",
-                        validators=[FileRequired(), FileAllowed(['csv'], "Only csv files please")]
+    pdf_file = FileField(r"Upload your report (optional)",
+                        validators=[FileAllowed(['pdf'], "Only pdf files please")]
                         )
-
+    result_file = StringField('File Path (e.g., /workdir/attempt1/results.csv)',
+                              validators=[DataRequired(),
+                                          Length(min=1, max=255),
+                                          Regexp(r'^\/\w+\/\w+\/.+\.csv$', message='Invalid file path. Use a valid relative path to a .csv file.')]
+                              )
     submit = SubmitField('Evaluate Results', render_kw={"onclick": "loading();"})
 
     def validate_qnumber(self, qnumber):
@@ -85,5 +90,3 @@ class OpenAISessionForm(FlaskForm):
     #context = StringField('Set your Context', default="")
     context = TextAreaField('Set you Context', render_kw={"rows": 2, "cols": 11})
     submit = SubmitField('Open new Session')
-    
-    

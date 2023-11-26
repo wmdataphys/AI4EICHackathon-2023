@@ -25,6 +25,7 @@ class OPENAI_Utils:
 
         code = []
         name = []
+        print(codes)
         for i in range(len(codes)):
             n,c = codes[i].split('\n',maxsplit=1)
             if n in ['python','bash']:# Lets think about this.
@@ -37,20 +38,39 @@ class OPENAI_Utils:
         return code,text,name
 
 
-    def write_file(self,filename,code):
+    def write_file(self,filename,code,username):
+        filename = str(filename)
+        username = str(username)
         try:
-            with open(str(filename), 'w') as file:
+            if not os.path.exists(os.path.join(r"../../",username)):
+                os.makedirs(os.path.join(r"../../",username))
+            file_path = os.path.join(r"../../",username,filename)
+            with open(file_path, 'w') as file:
                 file.write(code)
+            print('Wrote file.')
+            return file_path
         except:
             print('Error writing your code. Likely an issue with the file name or your code cell is blank.')
 
-    def scp_file(self,filename, destpath):
-        host = r"@bora.sciclone.wm.edu"
-        user = 'ksuresh'
-        password = r"Pavi\$4696" 
-        remote_path = destpath
-        local_path = str(filename)
-        os.system(f"sshpass -p \"{password}\" scp {local_path} {user}{host}:{remote_path}")
+    def scp_file(self,filename, destpath,push):
+        if push: # Push to AWS instance
+            host = r"@18.234.234.7"
+            user = 'admin'
+            password = r"15Ad456Hck"
+            remote_path = destpath
+            local_path = filename
+            #print(filename)
+            os.system(f"sshpass -p \"{password}\" scp {local_path} {user}{host}:{remote_path}")
+        else: # Pull from their aws instance given a file_path
+            host = r"@18.234.234.7"
+            user = 'admin'
+            password = r"15Ad456Hck"
+            local_path = destpath
+            remote_path = filename
+            #print(filename)
+            #print(local_path)
+            os.system(f"sshpass -p \"{password}\" scp {user}{host}:{remote_path} "+ local_path.replace(" ","\ "))
+
         """
         ssh = paramiko.SSHClient()
         private_key = paramiko.RSAKey(filename=private_key_path)
@@ -63,7 +83,6 @@ class OPENAI_Utils:
         ssh.close()
         """
 
-    
 
     def getDefaultContexts(self):
         """_summary_ : This function returns the default context for the chatbot"""
@@ -76,7 +95,7 @@ class OPENAI_Utils:
         5. tensorflow
         """
         sys_context_2 = """You are very critical in writing code with no Run Time errors. You can write code snippets in python."""
-        sys_context_3 = """You will strictly not answer questions that are not related to programming, computer science and Hadronic physics.
+        sys_context_3 = """You will strictly not answer questions that are not related to programming, computer science and Hardonic physics.
         Politely decline answering any conversation that is not related to the topic."""
 
         return [sys_context_1, sys_context_2, sys_context_3]

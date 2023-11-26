@@ -16,7 +16,7 @@ app = Flask(__name__)
 
 app.secret_key = "5791628bb0b13ce0c676dfde280ba245"
 app.config['SESSION_TYPE'] = 'filesystem'
-app.config["SESSION_PERMANENT"] = False 
+app.config["SESSION_PERMANENT"] = False
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=60)
 app.config['SECRET_KEY'] = '5791628bb0b13ce0c676dfde280ba245'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
@@ -54,8 +54,8 @@ app.config['MDEDITOR_FILE_UPLOADER'] = UPLOAD_FOLDER
 app.config['RES_FOLDER'] = RES_FOLDER
 app.config['Q_KEYS'] = dict()
 app.config['Q_THRES'] = {1 : 0.94, 2 : 0.86, 3 : 0.80}
-for k in range(1, 4):
-    app.config['Q_KEYS'][k] = os.path.join(app.config['RES_FOLDER'], f'Question{k}_test_labels.csv')
+for k in range(1, 3):
+    app.config['Q_KEYS'][k] = os.path.join(app.config['RES_FOLDER'], f'AnswerKey_Part{k}.csv')
 app.config['MAX_CONTENT_LENGTH'] =  3 * 1000 * 1000 # max 2mb file
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 app.config["OPENAI_USERS"] = dict()
