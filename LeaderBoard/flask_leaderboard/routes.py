@@ -312,7 +312,7 @@ def chat_dummy():
     elif (not session["openAI_active"] or not session.get("uuid")):
         return redirect(url_for('start_session'), sess_id = session["uuid"])
     elif(session.get("uuid")):
-        return redirect(url_for('chat', session_id = session["uuid"]))
+        return redirect(url_for('chat', user_name = current_user.username", session_id = session["uuid"]))
     else:
         return abort(500)
 
@@ -326,7 +326,7 @@ def chat(session_id):
         return redirect(url_for('login'))
     if (not session_id):
         return redirect(url_for('start_session', next_page = 'chat'))
-    print (session_id)
+    print (session_id, current_user.username)
     lastsession = ChatSessions.query.filter_by(uuid = session_id).first()
     print ("lastsession", lastsession)
     chat_id = lastsession.num_chats
