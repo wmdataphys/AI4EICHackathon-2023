@@ -63,6 +63,7 @@ class OPENAI_Utils:
         ssh.close()
         """
 
+    
 
     def getDefaultContexts(self):
         """_summary_ : This function returns the default context for the chatbot"""
@@ -75,7 +76,7 @@ class OPENAI_Utils:
         5. tensorflow
         """
         sys_context_2 = """You are very critical in writing code with no Run Time errors. You can write code snippets in python."""
-        sys_context_3 = """You will strictly not answer questions that are not related to programming, computer science and Hardonic physics.
+        sys_context_3 = """You will strictly not answer questions that are not related to programming, computer science and Hadronic physics.
         Politely decline answering any conversation that is not related to the topic."""
 
         return [sys_context_1, sys_context_2, sys_context_3]

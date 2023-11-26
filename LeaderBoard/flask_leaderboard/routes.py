@@ -37,6 +37,22 @@ def login_required(f):
             return redirect(url_for('login', next_page = 'chat'))
     return wrap
 
+def login_required_ajx(f):
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        if(current_user.is_authenticated):
+            tmp = str(uuid5(NAMESPACE_OID, f"{current_user.teamname}_{current_user.username}"))
+            print (tmp, session.get("user_uuid"))
+            if(not session.get("user_uuid")):
+                return redirect(url_for('login', next_page = 'chat'))
+            elif (session.get("user_uuid") != tmp):
+                return abort(403)
+            else:
+                return f(*args, **kwargs)
+        else:
+            return redirect(url_for('login', next_page = 'chat'))
+    return wrap
+
 @app.before_request
 def make_session_permanent():
     session.permanent = False
@@ -46,6 +62,7 @@ def make_session_permanent():
 def handle_exception(e):
     return render_template("error_500.html", e=e), 500
 """
+
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('page_not_found.html'), 404
@@ -105,7 +122,6 @@ def logout():
     session.pop("user_uuid", None)
     session.pop("uuid", None)
     session.pop("user", None)
-    session.clear()
     
     return redirect(url_for('leaderboard'))
 
@@ -315,7 +331,6 @@ def chat_dummy():
 def return_sessID():
     return session.get("uuid")
 @app.route('/chat/<session_id>', methods = ['GET', 'POST'])
-@cache.cached(timeout=300, key_prefix=return_sessID)
 @login_required # need to be logged in to chat
 def chat(session_id):
     if not current_user.is_authenticated:

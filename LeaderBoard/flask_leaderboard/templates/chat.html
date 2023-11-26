@@ -4,18 +4,7 @@
 <!-- Begin page content -->
 <div class="container-fluid">
   <div class="row">
-    <div class="col-md-2 position-fixed d-flex align-items-center justify-content-between custom-sidebar">
-      <div class="row">
-        <div class="col-12 text-center">
-          <button class="btn btn-primary mb-2 section-link" data-section="section1">Button 1</button>
-        </div>
-        <div class="col-12 text-center">
-          <button class="btn btn-secondary mb-2 section-link" data-section="section2">Button 2</button>
-        </div>
-        <!-- Add more buttons as needed -->
-      </div>
-      <!-- ... other sidebar content ... -->
-    </div>
+    
     <div class="col-md-10 offset-md-2">
       <!-- Your main content goes here -->
       <div class="chat-display-container">
@@ -24,7 +13,8 @@
             <img src="https://digital-practice.ams3.cdn.digitaloceanspaces.com/static%2Fapp%2Fimg%2Fopenai-logo.png" alt="twbs" width="32" height="32" class="rounded-circle flex-shrink-0">
             <div class="d-flex gap-2 w-100 justify-content-between">
               <div>
-                <p class="mb-0 opacity-75">Hello, I am the chatbot for the AI4EIC Hackathon. How may I help you?</p>
+                <p class="mb-0 opacity-75">Hello, I am the AI4EIC-LAB. How may I help you, 
+                  I am an expert in pytorch and writing code. I am also aware of Hadron Physics. Ask me your question....</p>
               </div>
             </div>
           </a>
@@ -32,7 +22,7 @@
       </div>
       <div class="chat-input-text-container input-group mb-3">
         <textarea id="chat-input" class="form-control custom-control" oninput='resizeTextarea(this)'></textarea>
-        <span id="gpt-button" class="input-group-asson btn btn-primary">Ask ChatGPT</span>
+        <span id="gpt-button" class="input-group-asson btn btn-primary">Chat with AI4EIC</span>
       </div>
     </div>
   </div>
