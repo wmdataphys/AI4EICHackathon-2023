@@ -310,9 +310,9 @@ def chat_dummy():
     if not current_user.is_authenticated:
         return redirect(url_for('login', next_page = 'start_session', sess_id = session.get("uuid")))
     elif (not session["openAI_active"] or not session.get("uuid")):
-        return redirect(url_for('start_session'), sess_id = session["uuid"])
+        return redirect(url_for('start_session'), sess_id = session["uuid"])    
     elif(session.get("uuid")):
-        return redirect(url_for('chat', user_name = current_user.username", session_id = session["uuid"]))
+        return redirect(url_for('chat', session_id = session["uuid"]))
     else:
         return abort(500)
 

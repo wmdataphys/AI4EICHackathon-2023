@@ -1,5 +1,3 @@
-import paramiko
-from scp import SCPClient
 import os
 
 class OPENAI_Utils:
