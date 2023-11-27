@@ -51,6 +51,10 @@ class User(db.Model, UserMixin):
                          unique = False, 
                          nullable = False
                          )
+    isLoggedIn = db.Column(db.Boolean,
+                           nullable = False,
+                           default = False
+                        )
     OPENAI_API_KEY = db.Column(db.String(60), 
                                unique = False, 
                                nullable = False
@@ -112,6 +116,7 @@ class ChatSessions(db.Model, UserMixin):
     const_sys_context = db.Column(db.Text(), nullable = False, default = "")
     user_sys_context = db.Column(db.Text(), nullable = False, default = "")
     num_chats = db.Column(db.Integer, nullable = False, default = 0)
+    total_tokens = db.Column(db.Integer, nullable = False, default = 0)
     ChatHistory = db.relationship('ChatInfo', backref = "session_index", lazy = True)
     
     def __repr__(self):

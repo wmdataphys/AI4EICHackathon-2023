@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+    {% block title %}
+       {{ super() }} <p> {{ title }} </p>
+    {% endblock %}
+
+    {% block header %}
+        {{ super() }}
+    {% endblock %}
+
+    {% block content %}
+        <h1>Home</h1>
+        <p>Welcome to profile page of {{ current_user.username }}
+            <!-- This will be replaced by a table of submissions and downloads-->
+    {% endblock %}

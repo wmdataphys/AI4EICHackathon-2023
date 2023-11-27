@@ -84,9 +84,18 @@ class LoginForm(FlaskForm):
     remember = BooleanField('Remember Me')
     submit = SubmitField('Login')
 
+class ForceLogoutForm(FlaskForm):
+    teamname = StringField('Team Name',
+                        validators = [DataRequired()])
+    username = StringField('User name',
+                        validators=[DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    remember = BooleanField('Remember when logging in')
+    submit = SubmitField('Logout of all devices and login')
+
 
 class OpenAISessionForm(FlaskForm):
-    name = StringField('Session Name', validators=[DataRequired()], default="Chat Session", render_kw={"placeholder" : "Name your session here. Default Session-#name"})
+    name = StringField('Session Name', default="Chat Session", render_kw={"placeholder" : "Name your session here. Default Session-#name"})
     #context = StringField('Set your Context', default="")
     context = TextAreaField('Set you Context', render_kw={"rows": 2, "cols": 11})
     submit = SubmitField('Open new Session')

@@ -1,23 +1,27 @@
 {% extends "layout.html" %}
-{% block content %}
+<link href="{{ url_for('static', filename='sidebar.css') }}" rel="stylesheet" type="text/css">
+<link href="{{ url_for('static', filename='simplemde.min.css') }}" rel="stylesheet" type="text/css">
 
+{% block content %}
+{% block javascript %}
+    <script src="{{ url_for('static',filename='sidebar.js') }}"></script>
+    <script src="{{ url_for('static',filename='simplemde.min.js') }}"></script>
+{% endblock %}
 <!-- Begin page content -->
 <div class="container-fluid">
   <div class="row">
-    <div class="col-md-2 position-fixed d-flex align-items-center justify-content-between custom-sidebar">
-      <div class="row">
-        <div class="col-12 text-center">
-          <button class="btn btn-primary mb-2 section-link" data-section="section1">Button 1</button>
-        </div>
-        <div class="col-12 text-center">
-          <button class="btn btn-secondary mb-2 section-link" data-section="section2">Button 2</button>
-        </div>
-        <!-- Add more buttons as needed -->
-      </div>
-      <!-- ... other sidebar content ... -->
-    </div>
+    
     <div class="col-md-10 offset-md-2">
       <!-- Your main content goes here -->
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h1">Name - {{ last_session.sessionname }}</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <button type="button" class="btn-warning btn-lg btn-outline-secondary">Tokens used - {{ last_session.total_tokens }}</button>
+                <a href="{{ url_for('start_session', teamname=teamname, username=username) }}" class="btn-primary btn-lg  btn-outline-secondary" onclick="return confirm('Are you sure you want to end this session?')">Refresh Session</a>
+            </div>
+        </div>
+      </div>
       <div class="chat-display-container">
         <div id="list-group" class="list-group w-auto">
           <a href="#" class="list-group-item list-group-item-action d-flex gap-3 py-3">
@@ -172,8 +176,8 @@
 
       $.ajax({
         type: "POST",
-        url: "/chatGPT",
-        data: { 'prompt': question, 'chat_id' : {{ chat_id }} },
+        url: "/chatGPT/{{ teamname }}/{{ username }}/{{ openai_session_id }}",
+        data: { 'prompt': question },
         beforeSend: function () {
           $("#gpt-button").attr("disabled", true);
         },

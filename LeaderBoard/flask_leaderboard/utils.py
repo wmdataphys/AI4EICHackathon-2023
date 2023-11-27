@@ -1,5 +1,16 @@
 import os
 
+class DB_Utils:
+    def __init__(self):
+        self.HOST = "ai4eichackathon.mysql.pythonanywhere-services.com"
+        self.USERNAME = "ai4eichackathon"
+        self.PASSWORD = "Hack_2023"
+        self.DB_NAME = "ai4eichackathon$users"
+    def getDB_URL(self):
+        return self.DB_URL
+    def getDB_NAME(self):
+        return self.DB_NAME
+        
 class OPENAI_Utils:
     def __init__(self):
         self.MAX_TOKENS = 4096

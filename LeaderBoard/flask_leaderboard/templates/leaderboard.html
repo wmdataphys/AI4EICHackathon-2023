@@ -1,4 +1,10 @@
-{% extends "layout0.html" %}
+{% extends "layout.html" %}
+
+{% block head %}
+  {{ super() }}
+  <meta http-equiv="refresh" content="30">
+{% endblock %}
+
 {% block content %}
 <!-- The Hackathon leaderboard -->
 <div class = "container">

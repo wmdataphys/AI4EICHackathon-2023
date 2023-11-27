@@ -5,7 +5,7 @@
             {{ form.hidden_tag() }}
             <div class = "boxed-container">
             <fieldset class="form-group whitecolor">
-                <legend class="border-bottom mb-4">Log In</legend>
+                <legend class="border-bottom mb-4">Log out from all device and login</legend>
                 <div class="form-group">
                     {{ form.teamname.label(class="form-control-label") }}
                     {% if form.teamname.errors %}
@@ -53,9 +53,6 @@
             <div class="form-group">
                 {{ form.submit(class="btn btn-outline-info") }}
             </div>
-            <small class="text-muted ml-2">
-                <a href="{{ url_for('force_logout')}}">Signout from all device</a>
-            </small>
             </div>
         </form>
     </div>
