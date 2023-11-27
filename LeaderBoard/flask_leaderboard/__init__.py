@@ -6,7 +6,6 @@ from flask_login import LoginManager
 from flask_leaderboard.OpenAIAg.OpenAIChat import OpenAIChat
 from flask_leaderboard.utils import OPENAI_Utils
 from flask_session import Session
-from flask_caching import Cache
 from datetime import timedelta
 
 
@@ -27,11 +26,8 @@ bcrypt = Bcrypt(app)
 
 config = {
     "DEBUG": False,          # some Flask specific configs
-    "CACHE_TYPE": "SimpleCache",  # Flask-Caching related configs
-    "CACHE_DEFAULT_TIMEOUT": 300
 }
 app.config.from_mapping(config)
-cache = Cache(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 login_manager.login_message_category = 'info'
