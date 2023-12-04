@@ -1,9 +1,6 @@
 {% extends "layout.html" %}
 <link href="{{ url_for('static', filename='simplemde.min.css') }}" rel="stylesheet" type="text/css">
 {% block content %}
-    {% block javascript %}
-        <script src="{{ url_for('static',filename='simplemde.min.js') }}"></script>
-    {% endblock %}
     <div class="boxed-container content-section">
         <form method="POST" action="" enctype="multipart/form-data">
             {{ form.hidden_tag() }}
@@ -36,9 +33,6 @@
                         {{ form.context(class="form-control form-control-lg", value = context) | safe }}
                     {% endif %}
                 </div>
-                <script>
-                    var simplemde = new SimpleMDE({ element: document.getElementById("context") });
-                </script>
             </fieldset>
             <div class="form-group whitecolor">
                 {{ form.submit(class="btn btn-outline-info btn-onclick") }}

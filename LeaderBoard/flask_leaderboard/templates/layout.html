@@ -12,13 +12,12 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/font-awesome.min.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/james.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/simplemde.min.css') }}">
     <title>
       {% block title %}
       AI4EIC Hackathon 2023
       {% endblock %}
     </title>
-    
+
 {% endblock %}
 
 </head>
@@ -40,7 +39,7 @@
               <a class="new-navstyle" href="{{ url_for('leaderboard') }}">Home</a>
               <a class="new-navstyle" href="{{ url_for('submit') }}">Submit</a>
               <a class="new-navstyle" href="{{ url_for('login') }}">Login</a>
-              <a class="new-navstyle" href="{{ url_for('allteams') }}">All Teams</a>     	      
+              <a class="new-navstyle" href="{{ url_for('allteams') }}">All Teams</a>
               {% endif %}
           {% endblock %}
         </div>
@@ -73,7 +72,7 @@
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
-    
+
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script type="module" src="https://md-block.verou.me/md-block.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.0/codemirror.min.js"></script>
@@ -85,8 +84,13 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
     <script src="{{url_for('static', filename='js/timer.js')}}"></script>
     <script src="{{url_for('static', filename='js/main.js')}}"></script>
-    <script src="{{url_for('static', filename='js/simplemde.min.js')}}"></script>
-    <script src="{{url_for('static', filename='js/markdown.js')}}"></script>
-    <script src="{{url_for('static', filename='js/utils.js')}}"></script>
+    <script> function calculateScrollbarWidth() {
+      var scrollWidth = $('.tbl-content').width() - $('.tbl-content table').width();
+      $('.tbl-header').css({ 'padding-right': scrollWidth });
+    }
+
+    // Attach the function to the window load and resize events
+    $(window).on("load resize", calculateScrollbarWidth);
+    </script>
 </body>
 </html>

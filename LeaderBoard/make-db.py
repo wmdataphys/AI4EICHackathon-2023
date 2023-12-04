@@ -12,7 +12,7 @@ db.drop_all()
 
 db.create_all()
 
-from flask_leaderboard.models import Team, User, Question
+from flask_leaderboard.models import Team, User
 
 # creating teams - leave commented until morning of 10/14
 team_names = []
@@ -32,13 +32,16 @@ db.create_all()
 for team, pword in zip(team_names, passwords):
     pword = make_password(pword)
     print (team)
-    db.session.add(Team(name = team, password = pword))
+    tem = Team(name = team, password = pword)
+    db.session.add(tem)
     db.session.commit()
     for user in users[team]:
-        db.session.add(User(username = user, 
-                            teamname = team, 
-                            password = pword, 
-                            OPENAI_API_KEY = "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")
+        print (tem.id)
+        db.session.add(User(username = user,
+                            teamname = tem.name,
+                            password = pword,
+                            OPENAI_API_KEY = "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"
+                            )
                        )
         db.session.commit()
 

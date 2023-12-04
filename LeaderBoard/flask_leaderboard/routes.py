@@ -123,7 +123,7 @@ def force_logout(**kwargs):
         else:
             flash('Login Unsuccessful. Please check team, username and password', 'danger')
     return render_template('force_logout.html', title='Login', form=form, sess_id = session.get("uuid"))
-        
+
 @app.route("/logout")
 def logout():
     try:
@@ -145,7 +145,7 @@ def logout():
     session.pop("uuid", None)
     session.pop("user", None)
     session.clear()
-    
+
     print ("State is: ", current_user.is_authenticated)
 
     return redirect(url_for('leaderboard'))
@@ -153,7 +153,7 @@ def logout():
 @app.route("/login", methods=['GET', 'POST'])
 def login(**kwargs):
     if current_user.is_authenticated:
-        default_redirect = url_for('profile', teamname = current_user.teamname, username=current_user.username)
+        default_redirect = url_for('user_profile', teamname = current_user.teamname, username=current_user.username)
         return redirect(request.args.get('next', default_redirect), **kwargs)
     form = LoginForm()
     if form.validate_on_submit():
@@ -175,8 +175,8 @@ def login(**kwargs):
                 default_redirect = url_for('user_profile', teamname = teamname, username = user.username)
                 return redirect(request.args.get('next', default_redirect), **kwargs)
         else:
-            flash('Login Unsuccessful. Please check team, username and password', 'danger')
-    return render_template('login.html', title='Login', form=form, sess_id = session.get("uuid"))
+            flash('Login Unsuccessful. Please check team, username and password', 'danger'), 400
+    return render_template('login.html', title='Login', form=form, sess_id = session.get("uuid")), 200
 
 
 @app.route("/profile/<teamname>/<username>", methods=['GET', 'POST'])
@@ -184,13 +184,13 @@ def login(**kwargs):
 def user_profile(teamname = None, username = None):
     if(current_user.username!= username or current_user.teamname!= teamname):
         return abort(403)
-    return render_template("user_profile.html", title=f'{teamname} {username} Profile', session_id = session.get("uuid"))
-    
+    return render_template("user_profile.html", title=f'{teamname} {username} Profile', session_id = session.get("uuid")), 200
+
 def EvaluateQScore(team):
     qscores = dict()
     for question in team.questions:
         print (question.qnumber)
-        
+
 @app.route("/submit", methods=['GET', 'POST'])
 def submit():
     uname = ""
@@ -252,7 +252,7 @@ def submit():
             flash("Invalid Credentials, Check team, username and password is correct", 'danger')
             #return redirect(url_for('leaderboard'))
     return render_template('submit.html', title='Submit for Evaluations', form=form,
-                            tname = tname, uname = uname)
+                            tname = tname, uname = uname), 200
 
 """
 def submit():
@@ -262,7 +262,7 @@ def submit():
 @login_required
 def start_session(teamname = None, username = None):
     if (current_user.username!= username or current_user.teamname!= teamname):
-        return abort(403)
+        return abort(403), 403
     session_index = User.query.get(current_user.id).TotalSessions + 1
     form = OpenAISessionForm()
     if form.validate_on_submit():
@@ -320,10 +320,10 @@ def chatGPT(teamname = None, username = None, openai_session_id = None):
     """
     agent = app.config["OPENAI_USERS"][username]
     if not agent:
-        agent = OpenAIChat(username, 
-                           flask_leaderboard.config.DevelopmentConfig.OPENAI_KEY, 
-                           session_name = lastsession.name, 
-                           session_id = lastsession.index, 
+        agent = OpenAIChat(username,
+                           flask_leaderboard.config.DevelopmentConfig.OPENAI_KEY,
+                           session_name = lastsession.name,
+                           session_id = lastsession.index,
                            session_uuid = session.get("uuid")
                            )
         agent.msgs = session.get("msgs")
@@ -355,7 +355,7 @@ def chatGPT(teamname = None, username = None, openai_session_id = None):
 
     #answer = flask_leaderboard.aiapi.generateChatResponse(prompt)
     """
-    
+
     res = {}
     res['prompt'] = request.form['prompt']
     res['session_id'] = 0
@@ -375,7 +375,7 @@ def chat(teamname = None, username = None, session_id = None):
     if(current_user.teamname!= teamname or current_user.username!= username):
         return abort(403)
     elif (not session.get("openAI_active") or not session.get("uuid")):
-        return redirect(url_for('start_session', teamname = teamname, username = username, session_id = session.get("uuid")))  
+        return redirect(url_for('start_session', teamname = teamname, username = username, session_id = session.get("uuid")))
     elif(session.get("uuid")!= session_id):
         flash("Your session has becom invalid. Please login in again to continue. ", "danger")
         return redirect(url_for('logout', next_page = 'login'))
@@ -383,9 +383,9 @@ def chat(teamname = None, username = None, session_id = None):
         user = User.query.filter_by(username = username, teamname = teamname).first()
         last_session = user.AllChatSessions[-1]
         session_names = [s.sessioname for s in user.AllChatSessions]
-        return render_template('chat.html', title='Chat Bot', 
-                               teamname = teamname, username = username, 
-                               openai_session_id = session_id, 
+        return render_template('chat.html', title='Chat Bot',
+                               teamname = teamname, username = username,
+                               openai_session_id = session_id,
                                last_session = last_session,
                                session_names = session_names,
                                session_id = session.get("uuid"))
@@ -421,6 +421,6 @@ def process_feedback():
     feedback = data.get('feedback')
     feedback = ['Negative','Positive','Neutral'][feedback]
     app.logger.info('Received feedback: %s', feedback)
-    
+
     # Return a response (you can customize this based on your needs)
     return jsonify({'status': 'success'})

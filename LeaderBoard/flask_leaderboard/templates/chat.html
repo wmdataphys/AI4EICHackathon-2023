@@ -1,16 +1,25 @@
 {% extends "layout.html" %}
 <link href="{{ url_for('static', filename='sidebar.css') }}" rel="stylesheet" type="text/css">
-<link href="{{ url_for('static', filename='simplemde.min.css') }}" rel="stylesheet" type="text/css">
 
 {% block content %}
 {% block javascript %}
     <script src="{{ url_for('static',filename='sidebar.js') }}"></script>
-    <script src="{{ url_for('static',filename='simplemde.min.js') }}"></script>
+    <script type="text/javascript">
+    var csrf_token = "{{ csrf_token() }}";
+
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", csrf_token);
+            }
+        }
+    });
+</script>
 {% endblock %}
 <!-- Begin page content -->
 <div class="container-fluid">
   <div class="row">
-    
+
     <div class="col-md-10 offset-md-2">
       <!-- Your main content goes here -->
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
@@ -35,6 +44,9 @@
         </div>
       </div>
       <div class="chat-input-text-container input-group mb-3" oncopy="return false">
+          <form method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            </form>
         <textarea id="chat-input" class="form-control custom-control" oninput='resizeTextarea(this)'></textarea>
         <span id="gpt-button" class="input-group-asson btn btn-primary">Ask ChatGPT</span>
       </div>

@@ -8,6 +8,7 @@ from flask_leaderboard.utils import OPENAI_Utils, DB_Utils
 from flask_session import Session
 from datetime import timedelta
 from uuid import uuid5, NAMESPACE_OID
+from flask_wtf.csrf import CSRFProtect
 
 #from flask_bootstrap import Bootstrap5
 
@@ -19,11 +20,17 @@ app.config["SESSION_PERMANENT"] = False
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=60)
 app.config['SECRET_KEY'] = '5791628bb0b13ce0c676dfde280ba245'
 #'mysql://ai4eichackathon:Hack_2023@ai4eichackathon.mysql.pythonanywhere-services.com/ai4eichackathon$beta_users' #'sqlite:///users.db' # this should change to MySQL now.
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://ai4eichackathon:Hack_2023@ai4eichackathon.mysql.pythonanywhere-services.com/ai4eichackathon$users'
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:@/hackathon?unix_socket=/cloudsql/eighth-gamma-406401:us-central1:hackathon'
+#app.config['SQLALCHEMY_DATABASE_URI'] ='mysql+mysqlconnector://root:@34.122.152.125/hackathon'
 app.config['SQLALCHEMY_TRACK_MODIFICATION'] = False
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = { 'pool_recycle': 200, 'pool_pre_ping': True}
 app.app_context().push()
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
+
+
+csrf = CSRFProtect(app)
 
 config = {
     "DEBUG": False,          # some Flask specific configs
@@ -68,6 +75,6 @@ if(not os.path.exists(app.config['RES_FOLDER'])):
 if(not os.path.exists(app.config['UPLOAD_FOLDER'])):
     os.makedirs(app.config['UPLOAD_FOLDER'])
 
-#from flask_leaderboard import routes
+from flask_leaderboard import routes
 
 #app.run(host = "127.0.0.1", port = "5500", debug=True)
